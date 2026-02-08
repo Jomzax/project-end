@@ -1,0 +1,62 @@
+version: "3.9"
+
+services:
+  # --------------------
+  # MySQL
+  # --------------------
+  mysql:
+    image: mysql:8.0
+    container_name: webboard-mysql
+    restart: always
+    environment:
+      #รหัสผ่าน root ของ MySQL
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE} # ชื่อฐานข้อมูล
+      MYSQL_USER: ${MYSQL_USER}         # ชื่อผู้ใช้ฐานข้อมูล
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: webboard-phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      # ลบส่วนนีถ้าล็อคอินฐานข้อมูล
+      PMA_USER: root 
+      PMA_PASSWORD: root
+
+    depends_on:
+      - mysql
+
+  # --------------------
+  # MongoDB
+  # --------------------
+  mongodb:
+    image: mongo:6
+    container_name: webboard-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # --------------------
+  # Redis
+  # --------------------
+  redis:
+    image: redis:7
+    container_name: webboard-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+
+volumes:
+  mysql_data:
+  mongo_data:

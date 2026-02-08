@@ -1,0 +1,18 @@
+# secrets
+.env
+.env.*
+
+# node
+**/node_modules/
+
+# build
+**/.next/
+**/dist/
+**/build/
+
+# logs
+*.log
+
+# personal
+note.txt
+dsa.txt

@@ -1,0 +1,50 @@
+/* Sidebar sticky */
+.forum-sidebar {
+    position: sticky;
+    top: 100px;
+}
+
+.forum-sidebar-body {
+  padding: 0.5rem; /* จาก 1rem → เล็กลงทันที */
+}
+
+/* Category list */
+.forum-category-list {
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+/* Category button */
+.forum-category-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.forum-category-btn:hover {
+    background-color: #f1f3f5;
+}
+
+.forum-category-btn.active {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+/* Search icon */
+.forum-search-icon {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: #6c757d;
+}
+
+/* Guest CTA */
+.forum-guest-box {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.75rem;
+    padding: 1rem;
+}

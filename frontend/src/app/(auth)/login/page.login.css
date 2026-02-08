@@ -1,0 +1,122 @@
+/* page.login.css */
+
+.login-page .container {
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #eef6ff, #ffffff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-page .card {
+  width: 380px;
+  background: #fff;
+  padding: 32px;
+  border-radius: 14px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  text-align: center;
+}
+ 
+
+.login-page .icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  background: #1e88ff;
+  color: #fff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.login-page .title {
+  margin: 0;
+  font-size: 22px;
+}
+
+.login-page .subtitle {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.login-page .form {
+  text-align: left;
+}
+
+.login-page label {
+  font-size: 14px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.login-page .inputGroup {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 14px;
+}
+
+.login-page .inputGroup span {
+  margin-right: 8px;
+}
+
+.login-page .inputGroup input {
+  border: none;
+  outline: none;
+  flex: 1;
+}
+
+.login-page .eye {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.login-page .remember {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.login-page .loginBtn {
+  width: 100%;
+  background: #1e88ff;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.login-page .loginBtn:hover {
+  background: #0f6fe6;
+}
+
+.login-page .divider {
+  text-align: center;
+  margin: 18px 0;
+  color: #aaa;
+}
+
+.login-page .register {
+  font-size: 14px;
+}
+
+.login-page .register a {
+  color: #1e88ff;
+  text-decoration: none;
+}
+
+.login-page .footer {
+  margin-top: 20px;
+  font-size: 12px;
+  color: #888;
+}

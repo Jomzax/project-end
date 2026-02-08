@@ -1,0 +1,107 @@
+/* ================= HEADER ================= */
+.forum-header {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  height: 72px;
+  min-height: 72px;           /* กัน header เด้ง */
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* ================= LOGO ================= */
+.logo-link {
+  text-decoration: none;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--bs-primary), #4f46e5);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.logo-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #212529;
+}
+
+/* ================= SEARCH ================= */
+/* ล็อกความกว้าง ไม่ให้ขยาย */
+.search-wrapper {
+  flex: 0 0 520px;            /* สำคัญ: ไม่ให้ flex ยืด */
+  max-width: 520px;
+}
+
+@media (max-width: 991px) {
+  .search-wrapper {
+    flex: 0 0 420px;
+    max-width: 420px;
+  }
+}
+
+@media (max-width: 575px) {
+  .search-wrapper {
+    flex: 1 1 auto;
+    max-width: 100%;
+  }
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+/* input แบบนิ่ง ไม่เด้ง */
+.search-input {
+  height: 40px;               /* ล็อกความสูง */
+  box-sizing: border-box;     /* กันขยายจาก border/shadow */
+  padding-left: 40px;
+  padding-right: 16px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  background-color: #f8fafc;
+  border: 1px solid #e5e7eb;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.search-input:focus {
+  background-color: #ffffff;
+  border-color: var(--bs-primary);
+  box-shadow: none;           /* ❌ ปิด shadow ที่ทำให้ดูขยาย */
+  outline: none;
+}
+
+/* ================= AVATAR ================= */
+.avatar-btn {
+  width: 36px;
+  height: 36px;
+  background-color: #e5e7eb;
+  color: #000;
+  text-decoration: none;
+}
+
+.avatar-btn:hover {
+  background-color: #d1d5db;
+}
+
+/* ================= BUTTON HOVER ================= */
+.hover-bg-light:hover {
+  background-color: #f1f5f9;
+}
+
+/* ================= SIDEBAR TOGGLE (MOBILE) ================= */
+.sidebar-toggle {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}

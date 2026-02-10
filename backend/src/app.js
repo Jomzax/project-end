@@ -4,17 +4,23 @@ import cors from "cors";
 
 import connectMongo from "./db/mongo.js";
 import pool from "./db/mysql.js";
-import authRoutes from "./routes/auth.routes.js";
-import discussionContentTestRoutes from "./routes/discussionContent.test.routes.js";
+import routes from "./routes/index.js";
+import listEndpoints from "express-list-endpoints";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// 🔥 ตรงนี้คือหัวใจ
-app.use("/api/auth", authRoutes);
-app.use("/api/test", discussionContentTestRoutes);
+// 🔥 ตรงนี้rotesคือหัวใจ
+app.use("/api", routes);
+
+// // 🔍 ดู routes ทั้งหมด 
+// if (process.env.NODE_ENV !== "production") {
+//   app.get("/api/_routes", (req, res) => {
+//     res.json(listEndpoints(routes));
+//   });
+// }
 
 
 // เริ่มเซิร์ฟเวอร์

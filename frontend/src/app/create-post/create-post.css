@@ -1,0 +1,185 @@
+* {
+    box-sizing: border-box;
+}
+
+html,body {
+    max-width: 100%;
+    overflow-x: hidden;
+    background-color: #f8f8f8;
+}
+
+/* ===== Container ===== */
+.container {
+    padding-top: 0;
+    margin-top: 0;
+}
+
+
+/* ===== Page ===== */
+.create-post-page {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 12px;
+}
+
+select.form-control {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* ===== Header ===== */
+.create-post-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+
+.create-post-header h5 {
+    margin: 0;
+    font-weight: 500;
+}
+
+.back-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px;
+}
+
+/* ===== Card ===== */
+.create-post-card {
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+/* ===== Form ===== */
+.form-group {
+    margin-bottom: 20px;
+    overflow: visible; /* 👈 สำคัญ */
+}
+
+.form-group label {
+    font-weight: 500;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.required {
+    color: #ef4444;
+}
+
+/* ===== Form Control (input / textarea) ===== */
+.form-control {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+    font-family: inherit;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+
+.form-control:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.content-textarea {
+    width: 100%;
+    min-height: 80px;        /* ความสูงเริ่มต้น */
+    max-height: 300px;       /* สูงสุดก่อนเริ่ม scroll */
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: none;            /* ❌ ไม่ให้ผู้ใช้ลากเอง */
+    overflow-y: auto;        /* scroll เมื่อเกิน max-height */
+}
+
+
+.content-textarea::placeholder {
+    color: #9ca3af;
+}
+
+.char-count {
+    text-align: right;
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+/* ===== Actions ===== */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+}
+
+.btn-cancel {
+    display: flex;
+    align-items: center;
+    background: #d6d6d6;
+    border: none;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: rgb(52, 52, 55);
+    cursor: pointer;
+}
+
+.btn-cancel:hover {
+    background: #999898;
+}
+
+.btn-submit {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-submit:hover {
+    background: #1d4ed8;
+}
+
+/* ===== Tips ===== */
+.tips-box {
+    margin-top: 24px;
+    padding: 16px;
+    background: #EEF5FC;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+}
+
+.tips-box h6 {
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.tips-box ul {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 14px;
+    color: #374151;
+}
+
+

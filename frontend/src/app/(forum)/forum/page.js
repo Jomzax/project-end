@@ -4,14 +4,18 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function CreatePostPage() {
-  const { user } = useAuth()
   const router = useRouter()
+  const { user, loading } = useAuth()
 
   useEffect(() => {
-    if (!user) router.replace('/')
-  }, [user])
+    if (!loading && !user) {
+      router.replace('/')
+    }
+  }, [loading, user])
 
+  if (loading) return <div>Loading...</div>
   if (!user) return null
+
 
   return <div>ฟอร์มสร้างกระทู้</div>
 }

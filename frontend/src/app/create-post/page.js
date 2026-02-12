@@ -1,35 +1,63 @@
 'use client'
 import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/app/lib/auth-context'
 import { ArrowLeft, Send } from 'lucide-react'
+import * as Icons from 'lucide-react'
 import './create-post.css'
 
 export default function CreatePostPage() {
+
+
+    const { user } = useAuth()
     const router = useRouter()
     const textareaRef = useRef(null)
-    const [titleCount, setTitleCount] = useState(0)
-    const [contentCount, setContentCount] = useState(0)
+    const [title, setTitle] = useState("")
+    const [content, setContent] = useState("")
     const [categoryId, setCategoryId] = useState("")
     const [categories, setCategories] = useState([])
+    const [titleCount, setTitleCount] = useState(0)
+    const [contentCount, setContentCount] = useState(0)
 
     const [search, setSearch] = useState("")
     const maxLength = 10000
     const maxLengthtit = 200
 
-    const handleContentInput = (e) => {
-        const el = textareaRef.current
-        if (!el) return
 
-        // auto resize (เหมือน ChatGPT)
-        el.style.height = 'auto'
-        el.style.height = el.scrollHeight + 'px'
+    const handleSubmit = async (e) => {
+        e.preventDefault()
 
-        // count character
-        setContentCount(e.target.value.length)
-    }
+        if (!user) {
+            alert("กรุณาเข้าสู่ระบบ")
+            return
+        }
 
-    const handleTitleInput = (e) => {
-        setTitleCount(e.target.value.length)
+        if (!categoryId || !title || !content) {
+            alert("กรอกข้อมูลให้ครบ")
+            return
+        }
+
+        try {
+            const res = await fetch("http://localhost:5000/api/discussion", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    user_id: user.user_id,  // มาจาก login
+                    category_id: categoryId,
+                    title: title,
+                    detail: content
+                })
+            })
+
+            if (res.ok) {
+                alert("สร้างกระทู้สำเร็จ")
+                router.push("/forum")
+            }
+        } catch (err) {
+            console.error(err)
+        }
     }
 
     const filteredCategories = categories
@@ -75,7 +103,7 @@ export default function CreatePostPage() {
                     {/* ===== Form Card ===== */}
                     <div className="card create-post-card">
                         <div className="card-body">
-                            <form>
+                            <form onSubmit={handleSubmit}>
                                 {/* หมวดหมู่ */}
                                 <div className="form-group">
 
@@ -93,9 +121,19 @@ export default function CreatePostPage() {
                                                 data-bs-toggle="dropdown"
                                                 aria-expanded="false"
                                             >
-                                                {categoryId
-                                                    ? categories.find(c => c.category_id === categoryId)?.name
-                                                    : "เลือกหมวดหมู่"}
+                                                {categoryId ? (() => {
+                                                    const selected = categories.find(c => c.category_id === categoryId)
+                                                    if (!selected) return "เลือกหมวดหมู่"
+
+                                                    const IconComponent = Icons[selected.icon] || Icons.MessageSquare
+
+                                                    return (
+                                                        <div className="d-flex align-items-center gap-2">
+                                                            <IconComponent size={16} color={selected.color} />
+                                                            {selected.name}
+                                                        </div>
+                                                    )
+                                                })() : "เลือกหมวดหมู่"}
                                             </button>
 
                                             {/* เมนู dropdown */}
@@ -118,18 +156,23 @@ export default function CreatePostPage() {
                                                         </div>
                                                     )}
 
-                                                    {filteredCategories.map(cat => (
-                                                        <button
-                                                            key={cat.category_id}
-                                                            className="dropdown-item"
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setCategoryId(cat.category_id)
-                                                            }}
-                                                        >
-                                                            {cat.name}
-                                                        </button>
-                                                    ))}
+                                                    {filteredCategories.map(cat => {
+                                                        const IconComponent = Icons[cat.icon] || Icons.MessageSquare
+
+                                                        return (
+                                                            <button
+                                                                key={cat.category_id}
+                                                                className="dropdown-item d-flex align-items-center gap-2"
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setCategoryId(cat.category_id)
+                                                                }}
+                                                            >
+                                                                <IconComponent size={16} color={cat.color} />
+                                                                {cat.name}
+                                                            </button>
+                                                        )
+                                                    })}
                                                 </div>
 
                                                 {filteredCategories.length === 20 && (
@@ -157,10 +200,15 @@ export default function CreatePostPage() {
                                     <input
                                         type="text"
                                         className="form-control"
+                                        value={title}   // 👈 เพิ่มบรรทัดนี้
                                         placeholder="พิมพ์หัวข้อกระทู้ที่น่าสนใจ..."
                                         maxLength={maxLengthtit}
-                                        onInput={handleTitleInput}
+                                        onChange={(e) => {
+                                            setTitle(e.target.value)
+                                            setTitleCount(e.target.value.length)
+                                        }}
                                     />
+
                                     <div className="char-count">
                                         {titleCount.toLocaleString()}/{maxLengthtit.toLocaleString()}
                                     </div>
@@ -174,9 +222,18 @@ export default function CreatePostPage() {
                                     <textarea
                                         ref={textareaRef}
                                         className="form-control content-textarea"
-                                        placeholder="เขียนเนื้อหากระทู้ของคุณที่นี่... แชร์ความคิดเห็น ถามคำถาม หรือแบ่งปันประสบการณ์"
+                                        placeholder="เขียนเนื้อหากระทู้ของคุณที่นี่..."
                                         maxLength={maxLength}
-                                        onInput={handleContentInput}
+                                        value={content}
+                                        onChange={(e) => {
+                                            setContent(e.target.value)
+                                            setContentCount(e.target.value.length)
+
+                                            const el = textareaRef.current
+                                            if (!el) return
+                                            el.style.height = 'auto'
+                                            el.style.height = el.scrollHeight + 'px'
+                                        }}
                                     />
 
                                     <div className="char-count">

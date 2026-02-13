@@ -178,3 +178,54 @@
   gap: 4px;
 }
 
+
+/* ปุ่ม Next และPrevious */
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 40px 0;
+  padding: 12px 20px;
+  background: #f9fafb;
+  border-radius: 16px;
+}
+
+.pagination {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.page-link {
+  background: white;
+  border: 1px solid #d1d5db;
+  padding: 8px 18px;
+  border-radius: 10px;
+  color: #374151;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.page-link:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+.page-item.active .page-link {
+  background: #2563eb;
+  color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.page-item.disabled .page-link {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-link:focus,
+.page-link:active {
+  outline: none;
+  box-shadow: none;
+}

@@ -3,38 +3,32 @@
 import '../page.forum.css'
 import Link from 'next/link'
 import { useAuth } from '@/app/lib/auth-context'
+import { useEffect, useState } from 'react'
 import { MessageCircle, ThumbsUp, Eye, Calendar, ChevronRight, User, Shield } from 'lucide-react'
 
 export default function ForumPage() {
   const { user } = useAuth()
+  const [page, setPage] = useState(1)
+  const [posts, setPosts] = useState([])
+  const [hasNext, setHasNext] = useState(false)
 
-  // 🔥 mock data ก่อน (ยังไม่ดึงจริง)
-  const posts = [
-    {
-      id: 1,
-      title: 'หัวข้อ',
-      excerpt: 'ฟหกกกกกหกกกกก',
-      category: 'อาหาร',
-      author: 'da',
-      role: 'User',
-      date: '4/2/2569',
-      likes: 0,
-      comments: 0,
-      views: 5,
-    },
-    {
-      id: 2,
-      title: 'หัวข้อ',
-      excerpt: 'อย่างตัวอย่าง',
-      category: 'เทคโนโลยี',
-      author: 'ตัวอย่าง',
-      role: 'Admin',
-      date: '13/1/2569',
-      likes: 1,
-      comments: 2,
-      views: 3,
-    },
-  ]
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/discussion?page=${page}`)
+        const data = await res.json()
+
+        if (data.success) {
+          setPosts(data.data)
+          setHasNext(data.hasNext)
+        }
+      } catch (err) {
+        console.error('โหลดกระทู้ไม่สำเร็จ', err)
+      }
+    }
+
+    fetchPosts()
+  }, [page])
 
   return (
     <div className="forum-main-content">
@@ -66,15 +60,15 @@ export default function ForumPage() {
 
       {/* ===== POST LIST ===== */}
       {posts.map((post) => (
-        <Link 
-          key={post.id}
-          href={`/post/${post.id}`}
+        <Link
+          key={post.discussion_id}
+          href={`/post/${post.discussion_id}`}
           className="post-card mb-3"
 
         >
 
           <div className="post-left-avatar">
-            {post.author.charAt(0).toUpperCase()}
+            {post.username?.charAt(0).toUpperCase()}
           </div>
 
           <div className="post-content">
@@ -84,18 +78,17 @@ export default function ForumPage() {
               <span className="category-badge">{post.category}</span>
               <div className="post-date">
                 <Calendar size={14} />
-                <span>{post.date}</span>
+                <span>{new Date(post.created_at).toLocaleDateString('th-TH')}</span>
               </div>
             </div>
 
             <h6 className="post-title">{post.title}</h6>
-            <p className="post-excerpt">{post.excerpt}</p>
+            <p className="post-excerpt">{post.detail?.slice(0, 80)}...</p>
 
             {/* BOTTOM ROW */}
             <div className="post-bottom">
-
               <div className="post-meta">
-                <span>{post.author}</span>
+                <span>{post.username}</span>
                 {post.role === 'Admin' ? (
                   <span className="badge-admin">
                     <Shield size={12} />
@@ -110,9 +103,9 @@ export default function ForumPage() {
               </div>
 
               <div className="post-stats">
-                <span><ThumbsUp size={14} /> {post.likes}</span>
-                <span><MessageCircle size={14} /> {post.comments}</span>
-                <span><Eye size={14} /> {post.views}</span>
+                <span><ThumbsUp size={14} /> {post.like_count}</span>
+                <span><MessageCircle size={14} /> {post.comment_count}</span>
+                <span><Eye size={14} /> {post.view_count}</span>
               </div>
             </div>
           </div>
@@ -123,6 +116,37 @@ export default function ForumPage() {
 
         </Link>
       ))}
+
+      <nav className="pagination-wrapper">
+        <ul className="pagination">
+
+          <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
+            <button
+              className="page-link"
+              onClick={() => setPage(p => p - 1)}
+              disabled={page === 1}
+            >
+              Previous
+            </button>
+          </li>
+
+          <li className="page-item active">
+            <span className="page-link">{page}</span>
+          </li>
+
+          <li className={`page-item ${!hasNext ? "disabled" : ""}`}>
+            <button
+              className="page-link"
+              onClick={() => setPage(p => p + 1)}
+              disabled={!hasNext}
+            >
+              Next
+            </button>
+          </li>
+
+        </ul>
+      </nav>
+
 
     </div>
   )

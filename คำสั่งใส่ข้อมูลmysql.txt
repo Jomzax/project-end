@@ -1,0 +1,47 @@
+-- ปิดการตรวจสอบ Foreign Key ชั่วคราว
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ตั้งค่าเริ่มตัวนับ
+SET @new_id = 0;
+
+-- เรียง id ใหม่ตามลำดับเดิม
+UPDATE discussions
+SET discussion_id = (@new_id := @new_id + 1)
+ORDER BY discussion_id;
+
+-- รีเซ็ต AUTO_INCREMENT ให้ต่อจากเลขล่าสุด
+ALTER TABLE discussions AUTO_INCREMENT = 1;
+
+-- เปิด Foreign Key กลับ
+SET FOREIGN_KEY_CHECKS = 1;
+
+------------------------------------------------------------------------------------------------------------------------
+INSERT INTO categories (name, slug, icon, color, created_at, updated_at)
+VALUES (
+  'ข่าวสาร',
+  'news',
+  'Newspaper',
+  '#22c55e',
+  NOW(),
+  NOW()
+);
+----------------------------------------------------------------------------------------------------------------
+INSERT INTO categories (name, slug, icon, color, created_at, updated_at) VALUES
+('ประกาศ', 'announcement', 'Megaphone', '#ef4444', NOW(), NOW()),
+('เทคนิค', 'tips', 'Lightbulb', '#22c55e', NOW(), NOW()),
+('โปรแกรมมิ่ง', 'programming', 'Code', '#3b82f6', NOW(), NOW()),
+('เว็บดีไซน์', 'web-design', 'Palette', '#ec4899', NOW(), NOW()),
+('แบ็กเอนด์', 'backend', 'Server', '#6366f1', NOW(), NOW()),
+('ฟรอนต์เอนด์', 'frontend', 'Layout', '#0ea5e9', NOW(), NOW()),
+('ฐานข้อมูล', 'database', 'Database', '#14b8a6', NOW(), NOW()),
+('ความปลอดภัย', 'security', 'Shield', '#64748b', NOW(), NOW()),
+('DevOps', 'devops', 'Settings', '#f97316', NOW(), NOW()),
+('บั๊ก / ปัญหา', 'bugs', 'Bug', '#dc2626', NOW(), NOW()),
+('รีวิว', 'review', 'Star', '#facc15', NOW(), NOW()),
+('ไอเดีย', 'ideas', 'Brain', '#a855f7', NOW(), NOW()),
+('ถาม-ตอบ', 'qna', 'HelpCircle', '#06b6d4', NOW(), NOW()),
+('แชร์ประสบการณ์', 'experience', 'Users', '#10b981', NOW(), NOW()),
+('ข่าวไอที', 'it-news', 'Newspaper', '#0f766e', NOW(), NOW()),
+('เครื่องมือ', 'tools', 'Wrench', '#475569', NOW(), NOW()),
+('โอเพ่นซอร์ส', 'open-source', 'Github', '#111827', NOW(), NOW()),
+('อื่นๆ', 'others', 'MoreHorizontal', '#9ca3af', NOW(), NOW());

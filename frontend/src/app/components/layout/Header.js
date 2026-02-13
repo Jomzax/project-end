@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import '../styles/Header.css'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/app/lib/auth-context'
 import {
   MessageSquare,
@@ -19,17 +20,39 @@ export default function Header() {
   const isLoggedIn = !!user
   const isAdmin = user?.role === 'admin'
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const currentQuery = searchParams.get('q') || ''
+  const [searchTerm, setSearchTerm] = useState(currentQuery)
 
   const handleLogout = () => {
     logout()
     router.replace('/')
   }
 
+  useEffect(() => {
+    setSearchTerm(currentQuery)
+  }, [currentQuery])
+
+  // debounce update URL
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const trimmed = searchTerm.trim()
+
+      if (!trimmed) {
+        router.replace('/forum') // ลบ ?q=
+      } else {
+        router.replace(`/forum?q=${encodeURIComponent(trimmed)}`)
+      }
+    }, 400)
+
+    return () => clearTimeout(timeout)
+  }, [searchTerm])
+
   return (
     <>
       {/* ================= HEADER ================= */}
       <header className="forum-header py-3">
-        <div className="container-fluid d-flex align-items-center px-2 px-md-4">
+        <div className="header-inner d-flex align-items-center px-2 px-md-4">
 
           {/* ===== LEFT ===== */}
           <div className="d-flex align-items-center gap-2 gap-md-3 me-2 me-md-3">
@@ -60,11 +83,14 @@ export default function Header() {
               <Search className="search-icon" size={16} />
               <input
                 type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="ค้นหากระทู้..."
                 className="form-control search-input"
               />
             </div>
           </div>
+
 
           {/* ===== RIGHT ===== */}
           <div className="d-flex align-items-center gap-1 gap-sm-2 gap-lg-3 ms-auto">

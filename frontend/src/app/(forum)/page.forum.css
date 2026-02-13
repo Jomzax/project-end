@@ -229,3 +229,35 @@
   outline: none;
   box-shadow: none;
 }
+
+.search-highlight {
+  background: linear-gradient(#ffe58f 60%);
+  animation: highlightFade 0.3s ease-in-out;
+}
+
+@keyframes highlightFade {
+  from { background-color: #fff3bf; }
+  to { background-color: transparent; }
+}
+
+.sort-btn {
+  border: none;
+  background: #f1f3f5;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.sort-btn:hover {
+  background: #e2e6ea;
+}
+
+.sort-btn.active {
+  background: #1677ff;
+  color: white;
+}
+

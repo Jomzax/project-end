@@ -64,7 +64,41 @@ export const getAllDiscussions = async (req, res) => {
     const page = Math.max(parseInt(req.query.page) || 1, 1);
     const limit = 10;
     const offset = (page - 1) * limit;
+    const q = req.query.q?.trim();
+    const category = req.query.category?.trim();
+    const sort = req.query.sort || 'latest';
 
+    let conditions = [];
+    let params = [];
+
+    if (q) {
+      conditions.push(`d.title LIKE ?`);
+      params.push(`%${q}%`);
+    }
+
+    if (category) {
+      conditions.push(`c.slug = ?`);   // ใช้ slug
+      params.push(category);
+    }
+
+    const whereClause =
+      conditions.length > 0
+        ? `WHERE ${conditions.join(' AND ')}`
+        : '';
+
+    let orderClause = 'd.created_at DESC';
+
+    if (sort === 'likes') {
+      orderClause = 'd.like_count DESC';
+    }
+
+    if (sort === 'comments') {
+      orderClause = 'd.comment_count DESC';
+    }
+
+    if (sort === 'views') {
+      orderClause = 'd.view_count DESC';
+    }
     // 🔥 ดึงมา 11 รายการ เพื่อเช็คว่ามีหน้าถัดไปไหม
     const [rows] = await db.query(`
       SELECT 
@@ -80,15 +114,32 @@ export const getAllDiscussions = async (req, res) => {
       FROM discussions d
       JOIN users u ON d.user_id = u.user_id
       JOIN categories c ON d.category_id = c.category_id
-      ORDER BY d.created_at DESC
+      ${whereClause}
+      ORDER BY ${orderClause}
       LIMIT ? OFFSET ?
-    `, [limit + 1, offset]);
+    `, [...params, limit + 1, offset]);
+
 
     const hasNext = rows.length > limit;
     const trimmedRows = rows.slice(0, limit);
 
-    const ids = trimmedRows.map(r => r.discussion_id.toString());
+    // 🔥 ถ้าไม่เจอเลย และมีคำค้น → แนะนำคำใกล้เคียง
+    let suggestion = null;
 
+    if (trimmedRows.length === 0 && q) {
+      const [suggestRows] = await db.query(`
+        SELECT title
+        FROM discussions
+        WHERE title LIKE ?
+        LIMIT 1
+      `, [`%${q.charAt(0)}%`]);
+
+      if (suggestRows.length > 0) {
+        suggestion = suggestRows[0].title;
+      }
+    }
+
+    const ids = trimmedRows.map(r => r.discussion_id.toString());
     let contentMap = {};
 
     if (ids.length > 0) {
@@ -110,7 +161,8 @@ export const getAllDiscussions = async (req, res) => {
       success: true,
       data,
       hasNext,
-      currentPage: page
+      currentPage: page,
+      suggestion
     });
 
   } catch (err) {
@@ -120,7 +172,27 @@ export const getAllDiscussions = async (req, res) => {
 };
 
 
+/* ================= GET FORUM STATS  ================= */
+export const getForumStats = async (req, res) => {
+  try {
 
+    const [[stats]] = await db.query(`
+      SELECT
+        (SELECT COUNT(*) FROM users) AS users,
+        (SELECT COUNT(*) FROM discussions) AS discussions
+    `);
+
+    res.json({
+      success: true,
+      users: stats.users,
+      discussions: stats.discussions
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
+  }
+};
 
 
 

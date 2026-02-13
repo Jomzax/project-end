@@ -1,3 +1,10 @@
+/* ================= LAYOUT ================= */
+
+.forum-main-content {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
 .welcome-box {
   background: linear-gradient(135deg, #e6f0ff, #f3f7ff);
   border: 1px solid #cfe0ff;
@@ -6,17 +13,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  
 }
 
 .welcome-box h5 {
   margin: 0;
 }
 
-.forum-main-content {
-  max-width: 1100px;
-  margin: 0 auto;
-}
+/* ================= STATS ================= */
 
 .stats {
   display: flex;
@@ -26,46 +29,45 @@
 .stats div {
   display: flex;
   flex-direction: column;
-  align-items: center;   /* 🔥 ทำให้เลขกับข้อความอยู่ตรงกลาง */
+  align-items: center;
 }
 
 .stats strong {
-  display: block;
   font-size: 16px;
   font-weight: 800;
 }
 
 .stats span {
   font-size: 12px;
-  font-weight: 400;
-  
 }
+
+/* ================= POST CARD ================= */
 
 .post-card {
   display: flex;
-  background: #fff;
-  border-radius: 14px;
-  padding: 16px;
-  border: 1px solid #e5e7eb;
   align-items: center;
   gap: 16px;
-  transition: all 0.25s ease;   
-  cursor: pointer;
-  position: relative;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 16px;
   text-decoration: none;
   color: inherit;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+.post-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+  transform: translateY(-3px);
 }
 
 .post-title {
   margin: 0;
   font-weight: 600;
   transition: color 0.2s ease;
-}
-
-.post-card:hover {
-  border-color: #3b82f6; 
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
-  transform: translateY(-3px); 
 }
 
 .post-card:hover .post-title {
@@ -81,6 +83,7 @@
   color: #2563eb;
 }
 
+/* ================= POST CONTENT ================= */
 
 .post-left-avatar {
   width: 48px;
@@ -101,7 +104,8 @@
   gap: 6px;
 }
 
-.post-top {
+.post-top,
+.post-bottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -115,19 +119,10 @@
   color: #64748b;
 }
 
-
-
 .post-excerpt {
   margin: 0;
   font-size: 14px;
   color: #6b7280;
-}
-
-.post-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 6px;
 }
 
 .post-stats {
@@ -137,6 +132,7 @@
   color: #64748b;
 }
 
+/* ================= BADGES ================= */
 
 .category-badge {
   background: #f1f5f9;
@@ -154,32 +150,28 @@
   align-items: center;
 }
 
-.badge-user {
-  background: #e0ecff;
-  color: #2563eb;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-}
-
+.badge-user,
 .badge-admin {
-  background: #ffe7d6;
-  color: #d97706;
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 12px;
-}
-
-
-.badge-admin,
-.badge-user {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
+.badge-user {
+  background: #e0ecff;
+  color: #2563eb;
+}
 
-/* ปุ่ม Next และPrevious */
+.badge-admin {
+  background: #ffe7d6;
+  color: #d97706;
+}
+
+/* ================= PAGINATION ================= */
+
 .pagination-wrapper {
   display: flex;
   justify-content: center;
@@ -196,15 +188,15 @@
 }
 
 .page-link {
-  background: white;
+  background: #fff;
   border: 1px solid #d1d5db;
   padding: 8px 18px;
   border-radius: 10px;
-  color: #374151;
   font-weight: 500;
+  color: #374151;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
 .page-link:hover {
@@ -215,7 +207,7 @@
 
 .page-item.active .page-link {
   background: #2563eb;
-  color: white;
+  color: #fff;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
@@ -230,15 +222,16 @@
   box-shadow: none;
 }
 
+/* ================= SEARCH HIGHLIGHT ================= */
+
 .search-highlight {
-  background: linear-gradient(#ffe58f 60%);
-  animation: highlightFade 0.3s ease-in-out;
+  background-color: #ffe58f;
+  padding: 0;                 /* ห้ามมี padding */
+  border-radius: 0;           /* ไม่ต้องโค้ง */
+  display: inline;            /* กัน layout shift */
 }
 
-@keyframes highlightFade {
-  from { background-color: #fff3bf; }
-  to { background-color: transparent; }
-}
+/* ================= SORT BUTTON ================= */
 
 .sort-btn {
   border: none;
@@ -258,6 +251,18 @@
 
 .sort-btn.active {
   background: #1677ff;
-  color: white;
+  color: #fff;
 }
 
+@media (min-width: 992px) {
+
+  /* เอา mx-auto ออกเฉพาะหน้า forum */
+  body:has(.forum-main-content) .search-wrapper {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+
+    /* ขยับไปเท่ากับ sidebar col-lg-3 */
+    transform: translateX(calc((100% - 680px)/2 + 275px));
+  }
+
+}

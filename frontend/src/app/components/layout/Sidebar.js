@@ -3,15 +3,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import * as Icons from 'lucide-react'
+import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import { useAuth } from '@/app/lib/auth-context'
 import '../styles/Sidebar.css'
 
-export default function Sidebar({
-    categories = [],
-    selectedCategory,
-    setSelectedCategory,
-}) {
-    const UserIcon = Icons.User  
+export default function Sidebar({ categories = [] }) {
+    const router = useRouter()
+    const { slug } = useParams()
+    const UserIcon = Icons.User
     const SearchIcon = Icons.Search
     const { user } = useAuth()
     const [query, setQuery] = useState('')
@@ -59,9 +58,9 @@ export default function Sidebar({
                                         key={cat.category_id}
                                         type="button"
                                         className={`list-group-item list-group-item-action forum-category-btn
-                                        ${selectedCategory === cat.name ? 'active' : ''}`}
+                                        ${slug === cat.slug ? 'active' : ''}`}
                                         onClick={() => {
-                                            setSelectedCategory?.(cat.name)
+                                            router.push(`/forum/${cat.slug}`)
                                             setQuery('')
                                         }}
                                     >

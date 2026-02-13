@@ -9,7 +9,7 @@ export default function ForumLayout({ children }) {
   const [categories, setCategories] = useState([])
   const [selectedCategory, setSelectedCategory] = useState(null)
 
-  // 🔥 ดึงหมวดหมู่จาก backend
+  //  ดึงหมวดหมู่จาก backend
   useEffect(() => {
     const fetchCategories = async () => {
       try {

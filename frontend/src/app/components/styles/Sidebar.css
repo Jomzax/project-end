@@ -48,3 +48,14 @@
     border-radius: 0.75rem;
     padding: 1rem;
 }
+
+.forum-search-input {
+  padding-left: 38px;
+  border-radius: 500px;
+  background-color: #f8fafc;
+}
+
+.forum-search-input:focus {
+  box-shadow: none;
+  border-color: #0d6efd;
+}

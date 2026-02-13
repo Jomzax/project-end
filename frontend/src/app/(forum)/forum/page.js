@@ -3,38 +3,35 @@
 import '../page.forum.css'
 import Link from 'next/link'
 import { useAuth } from '@/app/lib/auth-context'
+import useDebounce from '@/app/hooks/useDebounce'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState, useMemo } from 'react'
 import { MessageCircle, ThumbsUp, Eye, Calendar, ChevronRight, User, Shield, ArrowUpDown } from 'lucide-react'
+
 
 export default function ForumPage() {
   /* ================= URL PARAMS ================= */
   const searchParams = useSearchParams()
   const query = searchParams.get('q')?.trim() || ''
   const category = searchParams.get('category') || ''
+  const escapeRegExp = (string) =>
+    string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
+  /* ================= SMART DEBOUNCE ================= */
+  const delay = query.length < 3 ? 300 : 150
+  const debouncedQuery = useDebounce(query, delay)
 
   /* ================= STATE ================= */
   const { user } = useAuth()
   const [page, setPage] = useState(1)
   const [posts, setPosts] = useState([])
   const [sort, setSort] = useState('latest')
-  const [debouncedQuery, setDebouncedQuery] = useState(query)
   const [hasNext, setHasNext] = useState(false)
   const [suggestion, setSuggestion] = useState(null)
   const [stats, setStats] = useState({
     users: 0,
     discussions: 0
   })
-
-  /* ================= DEBOUNCE ================= */
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(query)
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [query])
-
 
   /* ================= FETCH POSTS ================= */
   useEffect(() => {
@@ -93,20 +90,22 @@ export default function ForumPage() {
 
   /* ================= HIGHLIGHT ================= */
   const highlightedPosts = useMemo(() => {
-
     if (!debouncedQuery) return posts
 
-    const regex = new RegExp(`(${debouncedQuery})`, 'gi')
+    const safeQuery = escapeRegExp(debouncedQuery)
+    const regex = new RegExp(safeQuery, 'gi')
 
-    return posts.map(post => ({
-      ...post,
-      highlightedTitle: post.title.split(regex).map((part, i) =>
-        part.toLowerCase() === debouncedQuery.toLowerCase()
-          ? <mark key={i} className="search-highlight">{part}</mark>
-          : part
+    return posts.map(post => {
+      const highlightedTitle = post.title.replace(
+        regex,
+        match => `<mark class="search-highlight">${match}</mark>`
       )
-    }))
 
+      return {
+        ...post,
+        highlightedTitle
+      }
+    })
   }, [posts, debouncedQuery])
 
   return (
@@ -189,9 +188,12 @@ export default function ForumPage() {
               </div>
             </div>
 
-            <h6 className="post-title">
-              {post.highlightedTitle || post.title}
-            </h6>
+            <h6
+              className="post-title"
+              dangerouslySetInnerHTML={{
+                __html: post.highlightedTitle || post.title
+              }}
+            />
             <p className="post-excerpt">{post.detail?.slice(0, 80)}...</p>
 
             {/* BOTTOM ROW */}

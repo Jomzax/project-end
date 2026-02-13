@@ -47,7 +47,7 @@
 @media (min-width: 992px) {
   .search-wrapper {
     max-width: 555px;
-    margin-left: calc((100% / 12) * 3 + 1.5rem);
+    margin: 0 auto;
   }
 }
 
@@ -106,4 +106,19 @@
   align-items: center;
   justify-content: center;
   border-radius: 10px;
+}
+
+/* Desktop only */
+@media (min-width: 992px) {
+
+  /* ทำให้ header กว้างเท่ากับ container */
+  .forum-header .header-inner {
+    max-width: 6000px;
+    margin: 0 auto;
+  }
+
+  /* ขยับ search ให้เริ่มตรง col-lg-9 */
+  .forum-header .search-wrapper {
+    margin-left: 25%;
+  }
 }

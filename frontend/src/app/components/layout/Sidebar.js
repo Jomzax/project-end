@@ -34,7 +34,7 @@ export default function Sidebar({ categories = [] }) {
                         <SearchIcon size={16} className="forum-search-icon" />
                         <input
                             type="text"
-                            className="form-control ps-5"
+                            className="form-control forum-search-input"
                             placeholder="ค้นหาหมวดหมู่..."
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}

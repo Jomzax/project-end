@@ -1,0 +1,59 @@
+'use client'
+
+import './post-detail.css'
+import { useParams } from 'next/navigation'
+import { useState } from 'react'
+import PostCard from './components/PostCard'
+import CommentForm from './components/CommentForm'
+import CommentItem from './components/CommentItem'
+
+export default function PostDetailPage() {
+  const { id } = useParams()
+
+  const post = {
+    id,
+    title: 'ฟหกฟกห',
+    content: 'ฟหกกดหกดดดดดด',
+    author: 'da',
+    role: 'User',
+    date: '4/2/2569',
+    views: 5,
+    likes: 0,
+    categories: ['ปักหมุด', 'มาแรง', 'อาหาร'],
+  }
+
+  const [comments, setComments] = useState([])
+
+  return (
+    <div className="post-page-wrapper">
+      <div className="container post-container">
+
+        <PostCard post={post} commentsCount={comments.length} />
+
+        <CommentForm
+          onSubmit={(newComment) =>
+            setComments([newComment, ...comments])
+          }
+        />
+
+        <div className="card shadow-sm">
+          <div className="card-body">
+
+            <h6 className="fw-bold mb-4">
+              ความคิดเห็น ({comments.length})
+            </h6>
+
+            {comments.map(comment => (
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+              />
+            ))}
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  )
+}

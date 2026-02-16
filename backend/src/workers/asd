@@ -1,0 +1,37 @@
+import redis from "../db/redis.js";
+import pool from "../db/mysql.js";
+
+console.log("📦 like.worker loaded");
+
+export const startLikeWorker = () => {
+  console.log("🚀 like.worker started");
+  
+  setInterval(async () => {
+     console.log("⏱ like.worker tick");
+    try {
+      const postIds = await redis.sMembers("dirty:posts");
+      console.log("DIRTY POSTS:", postIds);
+      if (!postIds.length) return;
+
+      console.log("sync like -> mysql", postIds);
+
+      for (const postId of postIds) {
+
+        const likes = await redis.get(`post:likes:${postId}`);
+        const likeCount = Number(likes || 0);
+
+        await pool.query(
+          `UPDATE discussions
+           SET like_count = ?
+           WHERE discussion_id = ?`,
+          [likeCount, Number(postId)]
+        );
+
+        await redis.sRem("dirty:posts", postId);
+      }
+
+    } catch (err) {
+      console.error("like worker error", err);
+    }
+  }, 5000);
+};

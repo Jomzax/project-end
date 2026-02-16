@@ -3,7 +3,7 @@ import express from "express";
 // controllers
 import { register, login } from "../controllers/auth.controller.js";
 import { getCategoryDropdown } from "../controllers/category.controller.js";
-import { getComments, createComment, deleteComment } from "../controllers/comment.controller.js";
+import { getComments, createComment, updateComment, deleteComment } from "../controllers/comment.controller.js";
 import { createDiscussion, getAllDiscussions, getDiscussionDetail,getDiscussionById, updateDiscussionContent, deleteDiscussion} from "../controllers/discussion.controller.js";
 import { getForumStats} from "../controllers/stats.controller.js"
 
@@ -27,6 +27,7 @@ router.delete("/discussion/:id", deleteDiscussion);
 /* ================= COMMENT ================= */
 router.get("/comment/:discussionId", getComments)
 router.post("/comment", createComment)
+router.patch("/comment/:id", updateComment)
 router.delete("/comment/:id", deleteComment)
 
 /* ================= STATS ================= */

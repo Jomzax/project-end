@@ -8,48 +8,53 @@ export default function CommentForm({ onSuccess, currentUser }) {
   const [text, setText] = useState('')
   const [focus, setFocus] = useState(false)
   const [loading, setLoading] = useState(false)
-
+  const MAX_COMMENT_LENGTH = 200
 
 
   const handleSubmit = async () => {
 
-  if (!currentUser || !currentUser.user_id) {
-    alert("กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็น")
-    return
-  }
+    if (!currentUser || !currentUser.user_id) {
+      alert("กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็น")
+      return
+    }
 
-  if (!text.trim() || loading) return
-  setLoading(true)
+    if (text.length > MAX_COMMENT_LENGTH) {
+      alert("ข้อความยาวเกินกำหนด")
+      return
+    }
 
-  try {
-    const res = await fetch(`http://localhost:5000/api/comment`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        discussionId: Number(id),
-        parentId: null,
-        message: text,
-        user: {
-          id: currentUser.user_id,      // ⭐ สำคัญ (ชื่อ field ใน MySQL)
-          username: currentUser.username,
-          role: currentUser.role
-        }
+    if (!text.trim() || loading) return
+    setLoading(true)
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/comment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          discussionId: Number(id),
+          parentId: null,
+          message: text,
+          user: {
+            id: currentUser.user_id,      // ⭐ สำคัญ (ชื่อ field ใน MySQL)
+            username: currentUser.username,
+            role: currentUser.role
+          }
+        })
       })
-    })
 
-    if (!res.ok) throw new Error("create failed")
+      if (!res.ok) throw new Error("create failed")
 
-    setText('')
-    setFocus(false)
-    onSuccess?.()
+      setText('')
+      setFocus(false)
+      onSuccess?.()
 
-  } catch (err) {
-    console.error(err)
-    alert("ส่งความคิดเห็นไม่สำเร็จ")
+    } catch (err) {
+      console.error(err)
+      alert("ส่งความคิดเห็นไม่สำเร็จ")
+    }
+
+    setLoading(false)
   }
-
-  setLoading(false)
-}
 
 
   return (
@@ -69,9 +74,14 @@ export default function CommentForm({ onSuccess, currentUser }) {
               rows={focus ? 3 : 1}
               placeholder="พิมพ์ความคิดเห็นของคุณ..."
               value={text}
+              maxLength={MAX_COMMENT_LENGTH}
               onFocus={() => setFocus(true)}
               onChange={(e) => setText(e.target.value)}
             />
+
+            <div className="text-end small text-muted">
+              {text.length}/{MAX_COMMENT_LENGTH}
+            </div>
 
             {focus && (
               <div className="comment-button-wrapper d-flex gap-2">

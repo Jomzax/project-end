@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { ThumbsUp, Shield, Pencil, Trash2, User } from 'lucide-react'
 import { useAuth } from '@/app/lib/auth-context'
-
+import { formatTimeAgo } from '@/app/lib/time-format'
 const MAX_DEPTH = 3
 
 export default function CommentItem({
@@ -15,7 +15,10 @@ export default function CommentItem({
 }) {
 
   const { user } = useAuth()
-
+  const MAX_COMMENT_LENGTH = 200
+  const isOwner = user && user.user_id === comment.userId
+  const isAdmin = user?.role === 'admin'
+  const canManage = isOwner || isAdmin
   const [showReplies, setShowReplies] = useState(false)
   const [showReplyBox, setShowReplyBox] = useState(false)
   const [replyText, setReplyText] = useState('')
@@ -32,6 +35,12 @@ export default function CommentItem({
       alert("กรุณาเข้าสู่ระบบก่อนตอบกลับ")
       return
     }
+
+    if (replyText.length > MAX_COMMENT_LENGTH) {
+      alert("ข้อความยาวเกินกำหนด")
+      return
+    }
+
 
     try {
       const res = await fetch("http://localhost:5000/api/comment", {
@@ -64,6 +73,50 @@ export default function CommentItem({
     }
   }
 
+  const handleEdit = async () => {
+    if (!editText.trim()) return
+
+    if (editText.length > MAX_COMMENT_LENGTH) {
+      alert("ข้อความยาวเกินกำหนด")
+      return
+    }
+    try {
+      const res = await fetch(`http://localhost:5000/api/comment/${comment.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: editText })
+      })
+
+      if (!res.ok) throw new Error("edit failed")
+
+      setIsEditing(false)
+      refreshComments()
+
+    } catch (err) {
+      console.error(err)
+      alert("แก้ไขไม่สำเร็จ")
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm("ต้องการลบความคิดเห็น?")) return
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/comment/${comment.id}`, {
+        method: "DELETE"
+      })
+
+      if (!res.ok) throw new Error("delete failed")
+
+      refreshComments()
+
+    } catch (err) {
+      console.error(err)
+      alert("ลบไม่สำเร็จ")
+    }
+  }
+
+
   return (
     <div className="comment-item">
 
@@ -82,54 +135,68 @@ export default function CommentItem({
               : <span className="badge-user"><User size={12} /> User</span>
             }
 
-            <span className="comment-time">{comment.created_at}</span>
+            <span className="comment-time">
+              {formatTimeAgo(comment.created_at)}
+            </span>
+
+            {comment.updated_at && comment.updated_at !== comment.created_at && (
+              <span className="comment-edited">
+                (แก้ไขแล้ว {formatTimeAgo(comment.updated_at)})
+              </span>
+            )}
+
           </div>
         </div>
 
-        <div className="comment-actions">
-          <button className="comment-icon-btn" onClick={() => setIsEditing(true)}>
-            <Pencil size={16} />
-          </button>
-          <button className="comment-icon-btn delete" onClick={() => onDelete(comment.id)}>
-            <Trash2 size={16} />
-          </button>
-        </div>
+        {canManage && (
+          <div className="comment-actions">
+            <button className="comment-icon-btn" onClick={() => setIsEditing(true)}>
+              <Pencil size={16} />
+            </button>
+            <button className="comment-icon-btn delete" onClick={handleDelete}>
+              <Trash2 size={16} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* TEXT */}
       <div className="comment-text">
         {isEditing ? (
-          <>
+          <div className="reply-input-box">
+
             <textarea
-              className="form-control"
+              className="form-control reply-textarea"
               rows="3"
               value={editText}
+              maxLength={MAX_COMMENT_LENGTH}
               onChange={(e) => setEditText(e.target.value)}
             />
 
-            <div className="edit-buttons">
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={() => {
-                  onEdit(comment.id, editText)
-                  setIsEditing(false)
-                }}
-              >
+            <div className="text-end small text-muted">
+              {editText.length}/{MAX_COMMENT_LENGTH}
+            </div>
+
+            <div className="reply-button-group">
+              <button className="btn btn-primary btn-sm" onClick={handleEdit}>
                 บันทึก
               </button>
 
               <button
-                className="btn btn-light btn-sm"
+                className="btn btn-secondary btn-sm"
                 onClick={() => setIsEditing(false)}
               >
                 ยกเลิก
               </button>
             </div>
-          </>
+
+          </div>
         ) : (
           comment.message
         )}
       </div>
+
+
 
       {/* FOOTER */}
       <div className="comment-footer">
@@ -166,8 +233,13 @@ export default function CommentItem({
             rows="3"
             placeholder="พิมพ์ข้อความตอบกลับ..."
             value={replyText}
+            maxLength={MAX_COMMENT_LENGTH}
             onChange={(e) => setReplyText(e.target.value)}
           />
+
+          <div className="text-end small text-muted">
+            {replyText.length}/{MAX_COMMENT_LENGTH}
+          </div>
 
           <div className="reply-button-group">
             <button className="btn btn-primary btn-sm" onClick={handleReplySubmit}>

@@ -336,3 +336,9 @@
 .post-menu-item.delete:hover {
   background: #fdeaea;
 }
+
+.comment-edited {
+  margin-left: 6px;
+  color: #888;
+  font-size: 12px;
+}

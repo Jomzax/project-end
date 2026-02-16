@@ -1,6 +1,6 @@
 'use client'
 import { useRef, useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/app/lib/auth-context'
 import { ArrowLeft, Send } from 'lucide-react'
 import * as Icons from 'lucide-react'
@@ -18,11 +18,17 @@ export default function CreatePostPage() {
     const [categories, setCategories] = useState([])
     const [titleCount, setTitleCount] = useState(0)
     const [contentCount, setContentCount] = useState(0)
-
+    const searchParams = useSearchParams()
+    const editId = searchParams.get("id")
+    const isEdit = !!editId
     const [search, setSearch] = useState("")
     const maxLength = 10000
     const maxLengthtit = 200
-
+    const filteredCategories = categories
+        .filter(cat =>
+            cat.name.toLowerCase().includes(search.toLowerCase())
+        )
+        .slice(0, 20) // จำกัดไม่เกิน 20 รายการ
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -38,13 +44,37 @@ export default function CreatePostPage() {
         }
 
         try {
+
+            // ✏️ EDIT MODE
+            if (isEdit) {
+                const res = await fetch(`http://localhost:5000/api/discussion/${editId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        detail: content,
+                        category_id: categoryId
+                    })
+                })
+
+                if (res.ok) {
+                    alert("แก้ไขกระทู้สำเร็จ")
+                    router.push(`/post/${editId}`)
+                }
+
+                return
+            }
+
+            // 🆕 CREATE MODE
             const res = await fetch("http://localhost:5000/api/discussion", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    user_id: user.user_id,  // มาจาก login
+                    user_id: user.user_id,
                     category_id: categoryId,
                     title: title,
                     detail: content
@@ -55,16 +85,38 @@ export default function CreatePostPage() {
                 alert("สร้างกระทู้สำเร็จ")
                 router.push("/forum")
             }
+
         } catch (err) {
             console.error(err)
         }
     }
 
-    const filteredCategories = categories
-        .filter(cat =>
-            cat.name.toLowerCase().includes(search.toLowerCase())
-        )
-        .slice(0, 20) // จำกัดไม่เกิน 20 รายการ
+
+    useEffect(() => {
+        if (!isEdit) return
+
+        const loadPost = async () => {
+            try {
+                const metaRes = await fetch(`http://localhost:5000/api/discussion/${editId}`)
+                const meta = await metaRes.json()
+
+                const detailRes = await fetch(`http://localhost:5000/api/discussion/${editId}/detail`)
+                const detail = await detailRes.json()
+
+                setTitle(meta.title)
+                setContent(detail.data.detail)
+                setCategoryId(meta.category_id)
+
+                setTitleCount(meta.title.length)
+                setContentCount(detail.data.detail.length)
+
+            } catch (err) {
+                console.error(err)
+            }
+        }
+
+        loadPost()
+    }, [editId])
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -93,11 +145,11 @@ export default function CreatePostPage() {
                         <button
                             type="button"
                             className="back-btn"
-                            onClick={() => router.back()}
+                            onClick={() => router.push("/forum")}
                         >
                             <ArrowLeft size={20} />
                         </button>
-                        <h5>สร้างกระทู้ใหม่</h5>
+                        <h5>{isEdit ? "แก้ไขกระทู้" : "สร้างกระทู้ใหม่"}</h5>
                     </div>
 
                     {/* ===== Form Card ===== */}
@@ -253,7 +305,7 @@ export default function CreatePostPage() {
 
                                     <button type="submit" className="btn-submit">
                                         <Send size={16} />
-                                        สร้างกระทู้
+                                        {isEdit ? "บันทึกการแก้ไข" : "สร้างกระทู้"}
                                     </button>
                                 </div>
 

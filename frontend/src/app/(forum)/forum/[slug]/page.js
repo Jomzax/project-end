@@ -23,6 +23,7 @@ export default function CategoryPage() {
       try {
         const res = await fetch(
           `http://localhost:5000/api/discussion?page=${page}&category=${slug}&sort=${sort}`
+          + `${sort === 'user' && user ? `&user_id=${user.user_id}` : ''}`
         )
 
         const data = await res.json()
@@ -83,6 +84,15 @@ export default function CategoryPage() {
           <Eye size={14} /> ยอดวิว
         </button>
 
+        {user && (
+          <button
+            className={`sort-btn ${sort === 'user' ? 'active' : ''}`}
+            onClick={() => setSort('user')}
+          >
+            <User size={14} /> กระทู้ของฉัน
+          </button>
+        )}
+
       </div>
 
       {posts.map((post) => (
@@ -110,7 +120,7 @@ export default function CategoryPage() {
             <div className="post-bottom">
               <div className="post-meta">
                 <span>{post.username}</span>
-                {post.role === 'Admin' ? (
+                {post.role === 'admin' ? (
                   <span className="badge-admin">
                     <Shield size={12} />
                     Admin

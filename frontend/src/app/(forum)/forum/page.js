@@ -42,6 +42,7 @@ export default function ForumPage() {
           + `${debouncedQuery ? `&q=${debouncedQuery}` : ''}`
           + `${category ? `&category=${encodeURIComponent(category)}` : ''}`
           + `&sort=${sort}`
+          + `${sort === 'user' && user ? `&user_id=${user.user_id}` : ''}`
         )
 
         const data = await res.json()
@@ -162,6 +163,15 @@ export default function ForumPage() {
           <Eye size={14} /> ยอดวิว
         </button>
 
+        {user && (
+          <button
+            className={`sort-btn ${sort === 'user' ? 'active' : ''}`}
+            onClick={() => setSort('user')}
+          >
+            <User size={14} /> กระทู้ของฉัน
+          </button>
+        )}
+
       </div>
 
       {/* ===== POST LIST ===== */}
@@ -188,19 +198,14 @@ export default function ForumPage() {
               </div>
             </div>
 
-            <h6
-              className="post-title"
-              dangerouslySetInnerHTML={{
-                __html: post.highlightedTitle || post.title
-              }}
-            />
+            <h6 className="post-title">{post.title?.slice(0, 50)}...</h6>
             <p className="post-excerpt">{post.detail?.slice(0, 80)}...</p>
 
             {/* BOTTOM ROW */}
             <div className="post-bottom">
               <div className="post-meta">
                 <span>{post.username}</span>
-                {post.role === 'Admin' ? (
+                {post.role === 'admin' ? (
                   <span className="badge-admin">
                     <Shield size={12} />
                     Admin

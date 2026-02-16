@@ -118,6 +118,15 @@
   flex: 1;
 }
 
+.post-meta {
+  display: flex;
+  margin-right: 12px;
+  align-items: center;
+  gap: 8px;
+}
+
+
+
 .comment-actions {
   margin-left: auto;
   display: flex;
@@ -157,12 +166,24 @@
 }
 
 /* Admin badge */
-.admin-badge {
-  background-color: #f8efd9;
-  color: #DE8722;
+.badge-user,
+.badge-admin {
+  padding: 2px 8px;
+  border-radius: 12px;
   font-size: 12px;
-  padding: 4px 12px;
-  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-user {
+  background: #e0ecff;
+  color: #2563eb;
+}
+
+.badge-admin {
+  background: #ffe7d6;
+  color: #d97706;
 }
 
 /* ข้อความ */
@@ -249,4 +270,69 @@
   margin-top: 8px;
   display: flex;
   gap: 10px;
+}
+
+/* ===== Category Badge ===== */
+.category-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:4px 12px;
+  border-radius:20px;
+  font-size:13px;
+  font-weight:500;
+  margin-right:6px;
+}
+
+/* ปักหมุด */
+.category-pin{
+  background:#f3eadf;
+  color:#8b5e3c;
+}
+
+/* มาแรง */
+.category-hot{
+  background:#ffe4e4;
+  color:#e03131;
+}
+
+/* อาหาร */
+.category-food{
+  background:#e7f1ff;
+  color:#1c7ed6;
+}
+
+.post-menu {
+  position: absolute;
+  right: 0;
+  top: 28px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+  border: 1px solid #eee;
+  padding: 6px;
+  min-width: 150px;
+  z-index: 20;
+}
+
+.post-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.post-menu-item:hover {
+  background: #f5f5f5;
+}
+
+.post-menu-item.delete {
+  color: #e53935;
+}
+
+.post-menu-item.delete:hover {
+  background: #fdeaea;
 }

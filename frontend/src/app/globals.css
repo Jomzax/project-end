@@ -35,6 +35,20 @@ a {
   text-decoration: none;
 }
 
+.text-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.7;
+}
+
+
+
+/* .post-content{
+  white-space: pre-line;
+  line-height: 1.7;
+  word-break: break-word;
+} */
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;

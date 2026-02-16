@@ -1,17 +1,56 @@
 'use client'
 
 import { useState } from 'react'
+import { useParams } from 'next/navigation'
 
-export default function CommentForm({ onSubmit }) {
+export default function CommentForm({ onSuccess, currentUser }) {
+  const { id } = useParams()
   const [text, setText] = useState('')
   const [focus, setFocus] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = () => {
-    if (!text.trim()) return
-    onSubmit(text)
+
+
+  const handleSubmit = async () => {
+
+  if (!currentUser || !currentUser.user_id) {
+    alert("กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็น")
+    return
+  }
+
+  if (!text.trim() || loading) return
+  setLoading(true)
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/comment`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        discussionId: Number(id),
+        parentId: null,
+        message: text,
+        user: {
+          id: currentUser.user_id,      // ⭐ สำคัญ (ชื่อ field ใน MySQL)
+          username: currentUser.username,
+          role: currentUser.role
+        }
+      })
+    })
+
+    if (!res.ok) throw new Error("create failed")
+
     setText('')
     setFocus(false)
+    onSuccess?.()
+
+  } catch (err) {
+    console.error(err)
+    alert("ส่งความคิดเห็นไม่สำเร็จ")
   }
+
+  setLoading(false)
+}
+
 
   return (
     <div className="card shadow-sm mb-4">
@@ -21,7 +60,7 @@ export default function CommentForm({ onSubmit }) {
         <div className="comment-form-wrapper">
 
           <div className="avatar-circle">
-            ด
+            {currentUser?.username?.charAt(0)?.toUpperCase()}
           </div>
 
           <div className="comment-input-area">
@@ -38,9 +77,10 @@ export default function CommentForm({ onSubmit }) {
               <div className="comment-button-wrapper d-flex gap-2">
                 <button
                   className="btn btn-primary"
+                  disabled={loading}
                   onClick={handleSubmit}
                 >
-                  ส่ง
+                  {loading ? "กำลังส่ง..." : "ส่ง"}
                 </button>
 
                 <button

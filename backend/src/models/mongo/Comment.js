@@ -5,7 +5,6 @@ const CommentSchema = new mongoose.Schema(
     discussionId: {
       type: Number,
       required: true,
-      index: true
     },
 
     parentId: {
@@ -67,5 +66,6 @@ CommentSchema.pre("findOneAndUpdate", function () {
   this.set({ updated_at: thaiTime() });
 });
 
+CommentSchema.index({ discussionId: 1 })
 
 export default mongoose.model("Comment", CommentSchema, "Comment");

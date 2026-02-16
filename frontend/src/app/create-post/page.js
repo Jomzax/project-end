@@ -45,6 +45,7 @@ export default function CreatePostPage() {
 
         try {
 
+    
             // ✏️ EDIT MODE
             if (isEdit) {
                 const res = await fetch(`http://localhost:5000/api/discussion/${editId}`, {
@@ -61,9 +62,9 @@ export default function CreatePostPage() {
 
                 if (res.ok) {
                     alert("แก้ไขกระทู้สำเร็จ")
-                    router.push(`/post/${editId}`)
+                    router.replace(`/post/${editId}`)
                 }
-
+                
                 return
             }
 

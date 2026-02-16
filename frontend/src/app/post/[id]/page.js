@@ -2,7 +2,7 @@
 
 import './post-detail.css'
 import { useParams, useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ArrowLeft } from 'lucide-react'
 
 import PostCard from './components/PostCard'
@@ -19,28 +19,48 @@ export default function PostDetailPage() {
   const [post, setPost] = useState(null)
   const [comments, setComments] = useState([])
 
-  /* ================= LOAD COMMENTS ================= */
+  /* ================= โหลด META จาก MySQL (จำนวนจริง) ================= */
+  const loadPostMeta = async () => {
+    if (!id) return
+
+    const res = await fetch(`http://localhost:5000/api/discussion/${id}`)
+    const meta = await res.json()
+
+    setPost(prev => ({
+      ...(prev || {}),
+      views: meta.view_count,
+      likes: meta.like_count,
+      comments: meta.comment_count ?? 0
+    }))
+  }
+  /* ================= โหลด COMMENTS จาก Mongo ================= */
   const loadComments = async () => {
     if (!id) return
+
     try {
       const res = await fetch(`http://localhost:5000/api/comment/${id}`)
-      setComments(await res.json())
+      const data = await res.json()
+      setComments(data)
+
+      // sync จำนวนจริงจาก MySQL
+      await loadPostMeta()
+
     } catch (err) {
       console.error("load comments error", err)
     }
   }
 
-  /* ================= LOAD POST ================= */
+  /* ================= โหลดกระทู้ครั้งแรก ================= */
   useEffect(() => {
     if (!id) return
 
     const loadPost = async () => {
       try {
-        // meta
+        // ---------- META ----------
         const metaRes = await fetch(`http://localhost:5000/api/discussion/${id}`)
         const meta = await metaRes.json()
 
-        // detail
+        // ---------- DETAIL ----------
         const detailRes = await fetch(`http://localhost:5000/api/discussion/${id}/detail`)
         const detail = await detailRes.json()
 
@@ -53,6 +73,7 @@ export default function PostDetailPage() {
           date: new Date(meta.created_at).toLocaleDateString('th-TH'),
           views: meta.view_count,
           likes: meta.like_count,
+          comments: meta.comment_count ?? 0, // ใช้ MySQL เท่านั้น
           liked: false,
           categories: [meta.category],
           content: detail.data.detail
@@ -63,12 +84,41 @@ export default function PostDetailPage() {
       }
     }
 
-    loadPost()
-    loadComments()
+    const init = async () => {
+      await loadPost()      // โหลดกระทู้ก่อน
+      await loadComments()  // แล้วค่อยโหลดคอมเมนต์
+    }
+
+    init()
 
   }, [id])
 
-  /* ================= DELETE POST ================= */
+
+  /* ================= VIEW COUNT (กันนับซ้ำ) ================= */
+  const countedRef = useRef(false)
+
+  useEffect(() => {
+    if (!id || countedRef.current) return
+
+    const viewedKey = `viewed_post_${id}`
+    const lastViewed = localStorage.getItem(viewedKey)
+
+    if (lastViewed && Date.now() - Number(lastViewed) < 10 * 60 * 1000) {
+      countedRef.current = true
+      return
+    }
+
+    countedRef.current = true
+    localStorage.setItem(viewedKey, Date.now())
+
+    fetch(`http://localhost:5000/api/discussion/${id}/view`, {
+      method: "POST"
+    })
+
+  }, [id])
+
+
+  /* ================= ลบกระทู้ ================= */
   const deletePost = async () => {
     if (!confirm("ต้องการลบกระทู้นี้?")) return
 
@@ -86,7 +136,7 @@ export default function PostDetailPage() {
     }
   }
 
-  /* ================= LOADING ================= */
+  /* ================= Loading ================= */
   if (!post || user === undefined)
     return <div className="container mt-5">กำลังโหลดกระทู้...</div>
 
@@ -105,7 +155,7 @@ export default function PostDetailPage() {
         {/* POST */}
         <PostCard
           post={post}
-          commentsCount={comments.length}
+          commentsCount={post.comments} //  จำนวนจริงจาก MySQL
           onEdit={() => router.push(`/create-post?id=${id}`)}
           onDelete={deletePost}
         />
@@ -117,7 +167,7 @@ export default function PostDetailPage() {
         <div className="card shadow-sm">
           <div className="card-body">
             <h6 className="fw-bold mb-4">
-              ความคิดเห็น ({comments.length})
+              ความคิดเห็น ({post?.comments ?? 0})
             </h6>
 
             {comments.map(comment => (
@@ -128,7 +178,6 @@ export default function PostDetailPage() {
                 refreshComments={loadComments}
               />
             ))}
-
           </div>
         </div>
 

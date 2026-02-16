@@ -5,12 +5,11 @@ import cors from "cors";
 import connectMongo from "./db/mongo.js";
 import pool from "./db/mysql.js";
 import routes from "./routes/index.js";
-import listEndpoints from "express-list-endpoints";
-
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
 
 // 🔥 ตรงนี้ rotes คือหัวใจ
 app.use("/api", routes);

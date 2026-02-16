@@ -1,6 +1,6 @@
+import db from "../db/mysql.js"
 import mongoose from "mongoose"
 import Comment from "../models/mongo/Comment.js"
-
 
 /* ================= DEPTH HELPER ================= */
 const getDepth = async (parentId) => {
@@ -8,74 +8,68 @@ const getDepth = async (parentId) => {
   let current = parentId
 
   while (current) {
-    const parent = await Comment.findById(current).lean()
+    const parent = await Comment.findById(current, "parentId").lean()
     if (!parent) break
     current = parent.parentId
     depth++
+    if (depth > 3) break
   }
 
   return depth
 }
 
-
 /* ================= GET COMMENTS ================= */
 export const getComments = async (req, res) => {
   try {
-    const { discussionId } = req.params;
+    const { discussionId } = req.params
 
     const comments = await Comment.find({ discussionId })
       .sort({ created_at: 1 })
-      .lean();
+      .lean()
 
-    const map = {};
-    const roots = [];
+    const map = {}
+    const roots = []
 
     comments.forEach(c => {
       map[c._id] = {
         ...c,
         id: c._id.toString(),
         replies: []
-      };
-    });
+      }
+    })
 
     comments.forEach(c => {
       if (c.parentId && map[c.parentId]) {
-        map[c.parentId].replies.push(map[c._id]);
+        map[c.parentId].replies.push(map[c._id])
       } else {
-        roots.push(map[c._id]);
+        roots.push(map[c._id])
       }
-    });
+    })
 
-    // จำกัดแสดงผล 3 ชั้น
-    const MAX_DEPTH = 3;
+    const MAX_DEPTH = 3
     const trimDepth = (nodes, depth = 1) =>
       nodes.map(node => ({
         ...node,
         replies: depth >= MAX_DEPTH ? [] : trimDepth(node.replies, depth + 1)
-      }));
+      }))
 
-    res.json(trimDepth(roots));
+    res.json(trimDepth(roots))
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "load comments failed" });
+    console.error(err)
+    res.status(500).json({ error: "load comments failed" })
   }
-};
-
+}
 
 /* ================= CREATE COMMENT ================= */
 export const createComment = async (req, res) => {
   try {
     const { discussionId, parentId, message, user } = req.body
 
-    // 🔥 LIMIT 3 ชั้นจริงใน DB
     if (parentId) {
       const depth = await getDepth(parentId)
-
       if (depth > 3) {
-        return res.status(400).json({
-          error: "reply depth limit reached (max 3)"
-        })
+        return res.status(400).json({ error: "reply depth limit reached" })
       }
     }
 
@@ -88,14 +82,21 @@ export const createComment = async (req, res) => {
       message
     })
 
+    // ⭐ Atomic +1 (เร็วมาก)
+    await db.query(
+      `UPDATE discussions 
+       SET comment_count = comment_count + 1
+       WHERE discussion_id = ?`,
+      [discussionId]
+    )
+
     res.json(newComment)
 
   } catch (err) {
-    console.error("CREATE COMMENT ERROR:", err)
+    console.error(err)
     res.status(500).json({ error: "create comment failed" })
   }
 }
-
 
 /* ================= UPDATE COMMENT ================= */
 export const updateComment = async (req, res) => {
@@ -103,61 +104,63 @@ export const updateComment = async (req, res) => {
     const { id } = req.params
     const { message } = req.body
 
-    if (!message?.trim())
-      return res.status(400).json({ error: "message required" })
-
     const updated = await Comment.findByIdAndUpdate(
       id,
-      {
-        message,
-        updated_at: new Date()
-      },
+      { message, updated_at: new Date() },
       { new: true }
     )
 
-    if (!updated)
-      return res.status(404).json({ error: "comment not found" })
-
+    if (!updated) return res.status(404).json({ error: "not found" })
     res.json(updated)
 
   } catch (err) {
-    console.error(err)
     res.status(500).json({ error: "update failed" })
   }
 }
 
-
-
-
 /* ================= DELETE COMMENT ================= */
 export const deleteComment = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params
 
-    const all = await Comment.find().lean();
+    const first = await Comment.findById(id).lean()
+    if (!first) return res.status(404).json({ error: "not found" })
 
-    const childrenMap = {};
+    const did = Number(first.discussionId)
+
+    // ดึงเฉพาะกระทู้
+    const all = await Comment.find({ discussionId: did }, "_id parentId").lean()
+
+    const childrenMap = {}
     all.forEach(c => {
-      const key = c.parentId ? c.parentId.toString() : null;
-      if (!childrenMap[key]) childrenMap[key] = [];
-      childrenMap[key].push(c._id.toString());
-    });
+      const key = c.parentId ? c.parentId.toString() : null
+      if (!childrenMap[key]) childrenMap[key] = []
+      childrenMap[key].push(c._id.toString())
+    })
 
-    const toDelete = [];
-    const stack = [id];
+    const toDelete = []
+    const stack = [id]
 
     while (stack.length) {
-      const current = stack.pop();
-      toDelete.push(current);
-      stack.push(...(childrenMap[current] || []));
+      const current = stack.pop()
+      toDelete.push(current)
+      stack.push(...(childrenMap[current] || []))
     }
 
-    await Comment.deleteMany({ _id: { $in: toDelete } });
+    await Comment.deleteMany({ _id: { $in: toDelete } })
 
-    res.json({ deleted: toDelete });
+    // ⭐ Atomic -N
+    await db.query(
+      `UPDATE discussions 
+       SET comment_count = GREATEST(comment_count - ?, 0)
+       WHERE discussion_id = ?`,
+      [toDelete.length, did]
+    )
+
+    res.json({ deleted: toDelete.length })
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "delete failed" });
+    console.error(err)
+    res.status(500).json({ error: "delete failed" })
   }
-};
+}

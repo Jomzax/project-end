@@ -246,6 +246,7 @@ export const getDiscussionById = async (req, res) => {
         d.created_at,
         d.view_count,
         d.like_count,
+        d.comment_count,
         u.username,
         u.role,
         c.name AS category
@@ -379,3 +380,36 @@ export const deleteDiscussion = async (req, res) => {
     conn.release();
   }
 };
+
+
+/* ================= INCREMENT VIEW ================= */
+const viewCache = new Map()
+
+export const incrementView = async (req, res) => {
+  try {
+    const id = Number(req.params.id)
+    const ip = req.ip
+
+    const key = `${id}_${ip}`
+    const now = Date.now()
+
+    // 10 นาที กัน view และหลังบ้านกันด้วย
+    if (viewCache.has(key) && now - viewCache.get(key) < 10 * 60 * 1000) {
+      return res.json({ success: true, skipped: true })
+    }
+
+    viewCache.set(key, now)
+
+    await db.query(`
+      UPDATE discussions
+      SET view_count = view_count + 1
+      WHERE discussion_id = ?
+    `, [id])
+
+    res.json({ success: true })
+
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: "view update failed" })
+  }
+}

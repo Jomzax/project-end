@@ -4,8 +4,8 @@ import express from "express";
 import { register, login } from "../controllers/auth.controller.js";
 import { getCategoryDropdown } from "../controllers/category.controller.js";
 import { getComments, createComment, updateComment, deleteComment } from "../controllers/comment.controller.js";
-import { createDiscussion, getAllDiscussions, getDiscussionDetail,getDiscussionById, updateDiscussionContent, deleteDiscussion} from "../controllers/discussion.controller.js";
-import { getForumStats} from "../controllers/stats.controller.js"
+import { createDiscussion, getAllDiscussions, getDiscussionDetail, getDiscussionById, updateDiscussionContent, deleteDiscussion, incrementView } from "../controllers/discussion.controller.js";
+import { getForumStats } from "../controllers/stats.controller.js"
 
 const router = express.Router();
 
@@ -23,6 +23,7 @@ router.get("/discussion/:id", getDiscussionById);
 router.get("/discussion/:id/detail", getDiscussionDetail);
 router.put("/discussion/:id", updateDiscussionContent);
 router.delete("/discussion/:id", deleteDiscussion);
+router.post("/discussion/:id/view", incrementView);
 
 /* ================= COMMENT ================= */
 router.get("/comment/:discussionId", getComments)

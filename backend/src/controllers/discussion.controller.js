@@ -1,6 +1,35 @@
 import db from "../db/mysql.js";
 import DiscussionContent from "../models/mongo/DiscussionContent.js";
 
+/* ---------- TITLE (เข้มงวด) ---------- */
+const sanitizeTitle = (text = "") => {
+  return text
+    .replace(/\r?\n/g, " ")   // ห้ามขึ้นบรรทัด
+    .replace(/\s{2,}/g, " ")  // ช่องว่างซ้ำ
+    .trim()
+    .slice(0, 200);
+};
+
+
+/* ================= SANITIZE TEXT ================= */
+const sanitizeContent = (text = "") => {
+  return text
+    // windows newline -> unix
+    .replace(/\r\n/g, "\n")
+
+    // ลบ space ท้ายบรรทัด
+    .replace(/[ \t]+$/gm, "")
+
+    // ห้ามเว้นเกิน 2 บรรทัดติด
+    .replace(/\n{3,}/g, "\n\n")
+
+    // ลบ space ต้นข้อความ
+    .replace(/^\s+/, "")
+
+    // ลบ space ท้ายข้อความ
+    .replace(/\s+$/, "");
+};
+
 const formatDateTime = () => {
   const now = new Date();
   const pad = (n) => n.toString().padStart(2, "0");
@@ -9,9 +38,9 @@ const formatDateTime = () => {
     `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 };
 
+
 /* ================= CREATE DISCUSSION ================= */
 export const createDiscussion = async (req, res) => {
-
 
   try {
     const { user_id, category_id, title, detail } = req.body;
@@ -19,6 +48,9 @@ export const createDiscussion = async (req, res) => {
     if (!user_id || !category_id || !title || !detail) {
       return res.status(400).json({ message: "Missing fields" });
     }
+
+    const cleanTitle = sanitizeTitle(title);
+    const cleanDetail = sanitizeContent(detail);
 
     const slug = Date.now();
 
@@ -38,8 +70,8 @@ export const createDiscussion = async (req, res) => {
     await DiscussionContent.create({
       discussion_id: discussionId.toString(),
       author_id: Number(user_id),
-      title,
-      detail,
+      title: cleanTitle,
+      detail: cleanDetail,
       created_at: now,
       updated_at: ""
     });
@@ -67,6 +99,7 @@ export const getAllDiscussions = async (req, res) => {
     const q = req.query.q?.trim();
     const category = req.query.category?.trim();
     const sort = req.query.sort || 'latest';
+    const user_id = req.query.user_id;
 
     let conditions = [];
     let params = [];
@@ -79,6 +112,12 @@ export const getAllDiscussions = async (req, res) => {
     if (category) {
       conditions.push(`c.slug = ?`);   // ใช้ slug
       params.push(category);
+    }
+
+    // ⭐ กระทู้ของฉัน
+    if (sort === 'user' && user_id) {
+      conditions.push(`d.user_id = ?`);
+      params.push(user_id);
     }
 
     const whereClause =
@@ -194,27 +233,93 @@ export const getForumStats = async (req, res) => {
   }
 };
 
+/* ================= GET DISCUSSION ById ================= */
+export const getDiscussionById = async (req, res) => {
+  try {
+    const { id } = req.params;
 
+    const [rows] = await db.query(`
+      SELECT 
+        d.discussion_id,
+        d.user_id,
+        d.title,
+        d.created_at,
+        d.view_count,
+        d.like_count,
+        u.username,
+        u.role,
+        c.name AS category
+      FROM discussions d
+      JOIN users u ON u.user_id = d.user_id
+      LEFT JOIN categories c ON c.category_id = d.category_id
+      WHERE d.discussion_id = ?
+      LIMIT 1
+    `, [id]);
+
+    if (!rows.length)
+      return res.status(404).json({ message: "ไม่พบกระทู้" });
+
+    res.json(rows[0]);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/* ================= GET DISCUSSION DETAIL (MongoDB) ================= */
+export const getDiscussionDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const content = await DiscussionContent.findOne({
+      discussion_id: id.toString()
+    }).lean();
+
+    if (!content)
+      return res.status(404).json({ success: false, message: "ไม่พบเนื้อหา" });
+
+    res.json({
+      success: true,
+      data: {
+        detail: content.detail
+      }
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
 
 
 /* ================= UPDATE DISCUSSION CONTENT ================= */
 export const updateDiscussionContent = async (req, res) => {
   try {
-    const { discussion_id, title, detail } = req.body;
+    const { id } = req.params;
+    const { title, detail, category_id } = req.body;
 
-    if (!discussion_id) {
-      return res.status(400).json({ message: "Missing discussion_id" });
+
+    if (!id) {
+      return res.status(400).json({ message: "Missing id" });
     }
 
-    const now = formatDateTime();
+    const cleanTitle = sanitizeTitle(title);
+    const cleanDetail = sanitizeContent(detail);
+
+    // update mysql
+    await db.query(
+      `UPDATE discussions
+       SET title = ?, category_id = ?, updated_at = NOW()
+       WHERE discussion_id = ?`,
+      [cleanTitle, Number(category_id), id]
+    );
 
     await DiscussionContent.updateOne(
-      { discussion_id: discussion_id },
+      { discussion_id: id.toString() },
       {
         $set: {
-          title,
-          detail,
-          updated_at: now   // 🔥 ตรงนี้จะใส่เวลาเมื่อมีการแก้ไข
+          title: cleanTitle,
+          detail: cleanDetail,
+          updated_at: formatDateTime()   // 🔥 ตรงนี้จะใส่เวลาเมื่อมีการแก้ไข
         }
       }
     );
@@ -224,5 +329,53 @@ export const updateDiscussionContent = async (req, res) => {
   } catch (err) {
     console.error("UPDATE ERROR:", err);
     res.status(500).json({ message: err.message });
+  }
+};
+
+
+/* ================= DELETE DISCUSSION ================= */
+export const deleteDiscussion = async (req, res) => {
+  const { id } = req.params;
+
+  const conn = await db.getConnection(); // ใช้ transaction
+
+  try {
+    await conn.beginTransaction();
+
+    // 1) เช็คว่ามีจริงไหม
+    const [rows] = await conn.query(
+      `SELECT discussion_id FROM discussions WHERE discussion_id = ? LIMIT 1`,
+      [id]
+    );
+
+    if (!rows.length) {
+      await conn.rollback();
+      return res.status(404).json({ message: "ไม่พบกระทู้" });
+    }
+
+    // 2) ลบ Mongo (detail)
+    await DiscussionContent.deleteOne({
+      discussion_id: id.toString()
+    });
+
+    // 3) ลบ MySQL (meta)
+    await conn.query(
+      `DELETE FROM discussions WHERE discussion_id = ?`,
+      [id]
+    );
+
+    await conn.commit();
+
+    res.json({
+      success: true,
+      message: "ลบกระทู้สำเร็จ"
+    });
+
+  } catch (err) {
+    await conn.rollback();
+    console.error("DELETE DISCUSSION ERROR:", err);
+    res.status(500).json({ message: err.message });
+  } finally {
+    conn.release();
   }
 };

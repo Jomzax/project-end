@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import * as Icons from 'lucide-react'
-import { useRouter, useSearchParams, useParams } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/app/lib/auth-context'
 import '../styles/Sidebar.css'
 
@@ -50,6 +50,25 @@ export default function Sidebar({ categories = [] }) {
                         )}
 
                         <div className="list-group list-group-flush">
+
+                            {/* ===== ALL CATEGORY ===== */}
+                            <button
+                                type="button"
+                                className={`list-group-item list-group-item-action forum-category-btn
+                                    ${!slug ? 'active' : ''}`}
+                                onClick={() => {
+                                    router.push('/forum')
+                                    setQuery('')
+                                }}
+                            >
+                                <div className="d-flex align-items-center gap-2">
+                                    <Icons.Home size={16} />
+                                    <span>ทั้งหมด</span>
+                                </div>
+                            </button>
+
+
+                            {/* ===== REAL CATEGORIES ===== */}
                             {filteredCategories.map(cat => {
                                 const IconComponent = Icons[cat.icon] || Icons.MessageSquare
 

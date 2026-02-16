@@ -2,58 +2,97 @@
 
 import './post-detail.css'
 import { useParams, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ArrowLeft } from 'lucide-react'
 
 import PostCard from './components/PostCard'
 import CommentForm from './components/CommentForm'
 import CommentItem from './components/CommentItem'
+import { useAuth } from '@/app/lib/auth-context'
 
 export default function PostDetailPage() {
+
+  const { user } = useAuth()
   const { id } = useParams()
   const router = useRouter()
+  const [post, setPost] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [comments, setComments] = useState([])
 
-  const [post, setPost] = useState({
-    id,
-    title: 'ฟหกฟกห',
-    content: 'ฟหกกดหกดดดดดด',
-    author: 'da',
-    role: 'User',
-    date: '4/2/2569',
-    views: 5,
-    likes: 0,
-    liked: false,
-    categories: ['ปักหมุด', 'มาแรง', 'อาหาร'],
-  })
+  const loadComments = useCallback(async () => {
+    if (!id) return
 
-  const [comments, setComments] = useState([
-    {
-      id: 1,
-      user: 'ตัวอย่าง',
-      role: 'Admin',
-      text: 'ชั้นที่ 1',
-      time: '13 ชม.',
-      replies: [
-        {
-          id: 11,
-          user: 'นอนน้อย',
-          role: 'Admin',
-          text: 'ชั้นที่ 2',
-          time: '1 ชม.',
-          replies: [
-            {
-              id: 111,
-              user: 'นอนมาก',
-              role: 'User',
-              text: 'ชั้นที่ 3',
-              time: '30 นาที',
-              replies: []
-            }
-          ]
-        }
-      ]
+    try {
+      const res = await fetch(`http://localhost:5000/api/comment/${id}`)
+      const data = await res.json()
+      setComments(data)
+    } catch (err) {
+      console.error("load comments error", err)
     }
-  ])
+  }, [id])
+
+  useEffect(() => {
+    if (!id) return
+
+    const loadPost = async () => {
+      try {
+        const metaRes = await fetch(`http://localhost:5000/api/discussion/${id}`)
+        const meta = await metaRes.json()
+
+        setPost({
+          id: meta.discussion_id,
+          user_id: meta.user_id,
+          title: meta.title,
+          author: meta.username,
+          role: meta.role,
+          date: new Date(meta.created_at).toLocaleDateString('th-TH'),
+          views: meta.view_count,
+          likes: meta.like_count,
+          liked: false,
+          categories: [meta.category],
+          content: ""
+        })
+
+        const detailRes = await fetch(`http://localhost:5000/api/discussion/${id}/detail`)
+        const detail = await detailRes.json()
+        setPost(prev => ({ ...prev, content: detail.data.detail }))
+
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadPost()
+    loadComments()
+
+  }, [id, loadComments])
+
+
+
+
+
+
+  const deletePost = async () => {
+    if (!confirm("ต้องการลบกระทู้นี้?")) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/discussion/${id}`, {
+        method: "DELETE"
+      });
+
+      if (res.ok) {
+        alert("ลบกระทู้แล้ว");
+        router.push("/forum");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+
 
   const toggleLike = () => {
     setPost(prev => ({
@@ -117,6 +156,10 @@ export default function PostDetailPage() {
   }
 
 
+  if (!post || user === undefined) {
+    return <div className="container mt-5">กำลังโหลดกระทู้...</div>
+  }
+
   return (
     <div className="post-page-wrapper">
       <div className="container post-container">
@@ -136,23 +179,15 @@ export default function PostDetailPage() {
         <PostCard
           post={post}
           commentsCount={comments.length}
-          onLike={toggleLike}
+          onLike={() => { }}
+          // onEdit={handleEditPost}
+          onEdit={() => router.push(`/create-post?id=${id}`)}
+          onDelete={deletePost}
         />
 
         <CommentForm
-          onSubmit={(text) =>
-            setComments([
-              {
-                id: Date.now(),
-                user: 'คุณ',
-                role: 'User',
-                text,
-                time: 'เมื่อสักครู่',
-                replies: []
-              },
-              ...comments
-            ])
-          }
+          onSuccess={loadComments}
+          currentUser={user}
         />
 
         <div className="card shadow-sm">
@@ -170,6 +205,8 @@ export default function PostDetailPage() {
                 onReply={addReply}
                 onDelete={deleteComment}
                 onEdit={editComment}
+                refreshComments={loadComments}
+                currentUser={user}   // 🔥 สำคัญ
               />
             ))}
 

@@ -81,7 +81,7 @@ export default function PostDetailPage() {
       setPost(prev => ({
         ...prev,
         liked: data.liked,
-        likes: Number.isFinite(data.likes) ? data.likes : prev.likes
+        likes: data.likes ?? prev.likes
       }))
     } catch { }
   }
@@ -142,7 +142,7 @@ export default function PostDetailPage() {
       setPost(prev => ({
         ...prev,
         liked: data.liked,
-        likes: Number.isFinite(data.likes) ? data.likes : prev.likes
+        likes: data.likes
       }))
 
     } catch {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ThumbsUp, Shield, Pencil, Trash2, User } from 'lucide-react'
+import { Heart, Shield, Pencil, Trash2, User } from 'lucide-react'
 import { useAuth } from '@/app/lib/auth-context'
 import { formatTimeAgo } from '@/app/lib/time-format'
 const MAX_DEPTH = 3
@@ -201,7 +201,7 @@ export default function CommentItem({
       {/* FOOTER */}
       <div className="comment-footer">
         <span className="comment-like">
-          <ThumbsUp size={14} /> 0
+          <Heart size={14} /> 0
         </span>
 
         {canReply && (

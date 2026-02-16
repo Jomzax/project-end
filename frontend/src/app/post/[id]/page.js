@@ -2,7 +2,7 @@
 
 import './post-detail.css'
 import { useParams, useRouter } from 'next/navigation'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { ArrowLeft } from 'lucide-react'
 
 import PostCard from './components/PostCard'
@@ -15,29 +15,34 @@ export default function PostDetailPage() {
   const { user } = useAuth()
   const { id } = useParams()
   const router = useRouter()
+
   const [post, setPost] = useState(null)
-  const [loading, setLoading] = useState(true)
   const [comments, setComments] = useState([])
 
-  const loadComments = useCallback(async () => {
+  /* ================= LOAD COMMENTS ================= */
+  const loadComments = async () => {
     if (!id) return
-
     try {
       const res = await fetch(`http://localhost:5000/api/comment/${id}`)
-      const data = await res.json()
-      setComments(data)
+      setComments(await res.json())
     } catch (err) {
       console.error("load comments error", err)
     }
-  }, [id])
+  }
 
+  /* ================= LOAD POST ================= */
   useEffect(() => {
     if (!id) return
 
     const loadPost = async () => {
       try {
+        // meta
         const metaRes = await fetch(`http://localhost:5000/api/discussion/${id}`)
         const meta = await metaRes.json()
+
+        // detail
+        const detailRes = await fetch(`http://localhost:5000/api/discussion/${id}/detail`)
+        const detail = await detailRes.json()
 
         setPost({
           id: meta.discussion_id,
@@ -50,115 +55,40 @@ export default function PostDetailPage() {
           likes: meta.like_count,
           liked: false,
           categories: [meta.category],
-          content: ""
+          content: detail.data.detail
         })
-
-        const detailRes = await fetch(`http://localhost:5000/api/discussion/${id}/detail`)
-        const detail = await detailRes.json()
-        setPost(prev => ({ ...prev, content: detail.data.detail }))
 
       } catch (err) {
         console.error(err)
-      } finally {
-        setLoading(false)
       }
     }
 
     loadPost()
     loadComments()
 
-  }, [id, loadComments])
+  }, [id])
 
-
-
-
-
-
+  /* ================= DELETE POST ================= */
   const deletePost = async () => {
-    if (!confirm("ต้องการลบกระทู้นี้?")) return;
+    if (!confirm("ต้องการลบกระทู้นี้?")) return
 
     try {
       const res = await fetch(`http://localhost:5000/api/discussion/${id}`, {
         method: "DELETE"
-      });
+      })
 
       if (res.ok) {
-        alert("ลบกระทู้แล้ว");
-        router.push("/forum");
+        alert("ลบกระทู้แล้ว")
+        router.push("/forum")
       }
     } catch (err) {
-      console.error(err);
+      console.error(err)
     }
-  };
-
-
-
-
-  const toggleLike = () => {
-    setPost(prev => ({
-      ...prev,
-      liked: !prev.liked,
-      likes: prev.liked ? prev.likes - 1 : prev.likes + 1
-    }))
-  }
-  // 🔥 เพิ่ม reply แบบ recursive ถูกต้อง
-  const addReply = (parentId, newReply) => {
-    const recursiveUpdate = (items) =>
-      items.map(item => {
-        if (item.id === parentId) {
-          return {
-            ...item,
-            replies: [...item.replies, newReply]
-          }
-        }
-
-        if (item.replies.length > 0) {
-          return {
-            ...item,
-            replies: recursiveUpdate(item.replies)
-          }
-        }
-
-        return item
-      })
-
-    setComments(prev => recursiveUpdate(prev))
   }
 
-  // 🗑 ลบคอมเมนต์ (recursive)
-  const deleteComment = (id) => {
-    const removeRecursive = (items) =>
-      items
-        .filter(item => item.id !== id)
-        .map(item => ({
-          ...item,
-          replies: removeRecursive(item.replies)
-        }))
-
-    setComments(prev => removeRecursive(prev))
-  }
-
-  // ✏️ แก้ไขข้อความ
-  const editComment = (id, newText) => {
-    const editRecursive = (items) =>
-      items.map(item => {
-        if (item.id === id) {
-          return { ...item, text: newText }
-        }
-
-        return {
-          ...item,
-          replies: editRecursive(item.replies)
-        }
-      })
-
-    setComments(prev => editRecursive(prev))
-  }
-
-
-  if (!post || user === undefined) {
+  /* ================= LOADING ================= */
+  if (!post || user === undefined)
     return <div className="container mt-5">กำลังโหลดกระทู้...</div>
-  }
 
   return (
     <div className="post-page-wrapper">
@@ -166,33 +96,26 @@ export default function PostDetailPage() {
 
         {/* HEADER */}
         <div className="post-header d-flex align-items-center mb-4">
-          <button
-            type="button"
-            className="back-button"
-            onClick={() => router.back()}
-          >
+          <button className="back-button" onClick={() => router.back()}>
             <ArrowLeft size={20} />
           </button>
           <h5 className="mb-0">กระทู้</h5>
         </div>
 
+        {/* POST */}
         <PostCard
           post={post}
           commentsCount={comments.length}
-          onLike={() => { }}
-          // onEdit={handleEditPost}
           onEdit={() => router.push(`/create-post?id=${id}`)}
           onDelete={deletePost}
         />
 
-        <CommentForm
-          onSuccess={loadComments}
-          currentUser={user}
-        />
+        {/* COMMENT FORM */}
+        <CommentForm onSuccess={loadComments} currentUser={user} />
 
+        {/* COMMENTS */}
         <div className="card shadow-sm">
           <div className="card-body">
-
             <h6 className="fw-bold mb-4">
               ความคิดเห็น ({comments.length})
             </h6>
@@ -202,14 +125,9 @@ export default function PostDetailPage() {
                 key={comment.id}
                 comment={comment}
                 level={0}
-                onReply={addReply}
-                onDelete={deleteComment}
-                onEdit={editComment}
                 refreshComments={loadComments}
-                currentUser={user}   // 🔥 สำคัญ
               />
             ))}
-
 
           </div>
         </div>

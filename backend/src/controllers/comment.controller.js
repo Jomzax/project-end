@@ -97,6 +97,38 @@ export const createComment = async (req, res) => {
 }
 
 
+/* ================= UPDATE COMMENT ================= */
+export const updateComment = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { message } = req.body
+
+    if (!message?.trim())
+      return res.status(400).json({ error: "message required" })
+
+    const updated = await Comment.findByIdAndUpdate(
+      id,
+      {
+        message,
+        updated_at: new Date()
+      },
+      { new: true }
+    )
+
+    if (!updated)
+      return res.status(404).json({ error: "comment not found" })
+
+    res.json(updated)
+
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: "update failed" })
+  }
+}
+
+
+
+
 /* ================= DELETE COMMENT ================= */
 export const deleteComment = async (req, res) => {
   try {

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Heart, Shield, Pencil, Trash2, User } from 'lucide-react'
 import { useAuth } from '@/app/lib/auth-context'
+import { useAlert } from '@/app/lib/alert-context'
 import { formatTimeAgo } from '@/app/lib/time-format'
 const MAX_DEPTH = 3
 
@@ -17,6 +18,7 @@ export default function CommentItem({
 }) {
 
   const { user } = useAuth()
+  const { showAlert } = useAlert()
   const MAX_COMMENT_LENGTH = 200
   const isOwner = user && user.user_id === comment.userId
   const isAdmin = user?.role === 'admin'
@@ -31,8 +33,9 @@ export default function CommentItem({
   const canReply = level < MAX_DEPTH - 1
 
   const handleLike = async () => {
-    if (!user) return alert("กรุณาเข้าสู่ระบบ");
+    if (!user) return showAlert("กรุณาเข้าสู่ระบบ", 'warning');
 
+    // ✅ ใช้ _id ตรวจสอบให้ชัดเจน (ต้องตรงกับ MongoDB ObjectId)
     const id = comment._id || comment.id;
     if (!id) return;
 
@@ -73,12 +76,12 @@ export default function CommentItem({
     if (!replyText.trim()) return
 
     if (!user || !user.user_id) {
-      alert("กรุณาเข้าสู่ระบบก่อนตอบกลับ")
+      showAlert("กรุณาเข้าสู่ระบบก่อนตอบกลับ", 'warning')
       return
     }
 
     if (replyText.length > MAX_COMMENT_LENGTH) {
-      alert("ข้อความยาวเกินกำหนด")
+      showAlert("ข้อความยาวเกินกำหนด", 'warning')
       return
     }
 
@@ -110,7 +113,7 @@ export default function CommentItem({
 
     } catch (err) {
       console.error(err)
-      alert(err.message)
+      showAlert(err.message || "ส่งความคิดเห็นไม่สำเร็จ", 'error')
     }
   }
 
@@ -118,7 +121,7 @@ export default function CommentItem({
     if (!editText.trim()) return
 
     if (editText.length > MAX_COMMENT_LENGTH) {
-      alert("ข้อความยาวเกินกำหนด")
+      showAlert("ข้อความยาวเกินกำหนด", 'warning')
       return
     }
     try {
@@ -131,30 +134,32 @@ export default function CommentItem({
       if (!res.ok) throw new Error("edit failed")
 
       setIsEditing(false)
+      showAlert("แก้ไขความคิดเห็นสำเร็จ", 'success')
       refreshComments()
 
     } catch (err) {
       console.error(err)
-      alert("แก้ไขไม่สำเร็จ")
+      showAlert("แก้ไขไม่สำเร็จ", 'error')
     }
   }
 
   const handleDelete = async () => {
-    if (!confirm("ต้องการลบความคิดเห็น?")) return
+    showAlert("ต้องการลบความคิดเห็นนี้?", 'confirm', '❓ ยืนยันการลบ', async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/comment/${comment.id}`, {
+          method: "DELETE"
+        })
 
-    try {
-      const res = await fetch(`http://localhost:5000/api/comment/${comment.id}`, {
-        method: "DELETE"
-      })
+        if (!res.ok) throw new Error("delete failed")
 
-      if (!res.ok) throw new Error("delete failed")
+        showAlert("ลบความคิดเห็นสำเร็จ", 'success')
+        refreshComments()
 
-      refreshComments()
-
-    } catch (err) {
-      console.error(err)
-      alert("ลบไม่สำเร็จ")
-    }
+      } catch (err) {
+        console.error(err)
+        showAlert("ลบไม่สำเร็จ", 'error')
+      }
+    })
   }
 
 
@@ -241,24 +246,26 @@ export default function CommentItem({
 
       {/* FOOTER */}
       <div className="comment-footer">
-        {(() => {
-          const realId = comment._id || comment.id;
-          const likeData = commentLikes?.[realId] || { liked: false, likes: 0 };
+        <div className="comment-like-container" >
+          {(() => {
+            const realId = comment._id || comment.id;
+            const likeData = commentLikes?.[realId] || { liked: false, likes: 0 };
 
-          return (
-            <span
-              className="comment-like"
-              onClick={handleLike}
-              style={{ color: likeData.liked ? '#e0245e' : '' }}
-            >
-              <Heart
-                size={14}
-                fill={likeData.liked ? '#e0245e' : 'none'}
-              />
-              {likeData.likes}
-            </span>
-          );
-        })()}
+            return (
+              <span
+                className="comment-like"
+                onClick={handleLike}
+                style={{ color: likeData.liked ? '#e0245e' : '' }}
+              >
+                <Heart
+                  size={14}
+                  fill={likeData.liked ? '#e0245e' : 'none'}
+                />
+                {likeData.likes}
+              </span>
+            );
+          })()}
+        </div>
 
         {canReply && (
           <span

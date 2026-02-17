@@ -137,7 +137,7 @@ export default function Header() {
                       className="p-2 rounded-circle hover-bg-light"
                       title="Admin Dashboard"
                     >
-                      <Shield size={18} />
+                      <Shield size={18} color="#f97316" />
                     </Link>
                   )}
 

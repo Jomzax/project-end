@@ -2,14 +2,15 @@
 import { useRef, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/app/lib/auth-context'
+import { useAlert } from '@/app/lib/alert-context'
 import { ArrowLeft, Send } from 'lucide-react'
 import * as Icons from 'lucide-react'
 import './create-post.css'
 
 export default function CreatePostPage() {
 
-
     const { user } = useAuth()
+    const { showAlert } = useAlert()
     const router = useRouter()
     const textareaRef = useRef(null)
     const [title, setTitle] = useState("")
@@ -34,18 +35,18 @@ export default function CreatePostPage() {
         e.preventDefault()
 
         if (!user) {
-            alert("กรุณาเข้าสู่ระบบ")
+            showAlert("กรุณาเข้าสู่ระบบ", 'error')
             return
         }
 
         if (!categoryId || !title || !content) {
-            alert("กรอกข้อมูลให้ครบ")
+            showAlert("กรอกข้อมูลให้ครบ", 'warning')
             return
         }
 
         try {
 
-    
+
             // ✏️ EDIT MODE
             if (isEdit) {
                 const res = await fetch(`http://localhost:5000/api/discussion/${editId}`, {
@@ -61,10 +62,12 @@ export default function CreatePostPage() {
                 })
 
                 if (res.ok) {
-                    alert("แก้ไขกระทู้สำเร็จ")
-                    router.replace(`/post/${editId}`)
+                    showAlert("แก้ไขกระทู้สำเร็จ", 'success')
+                    setTimeout(() => router.replace(`/post/${editId}`), 500)
+                } else {
+                    showAlert("แก้ไขกระทู้ไม่สำเร็จ", 'error')
                 }
-                
+
                 return
             }
 
@@ -83,12 +86,15 @@ export default function CreatePostPage() {
             })
 
             if (res.ok) {
-                alert("สร้างกระทู้สำเร็จ")
-                router.push("/forum")
+                showAlert("สร้างกระทู้สำเร็จ", 'success')
+                setTimeout(() => router.push("/forum"), 500)
+            } else {
+                showAlert("สร้างกระทู้ไม่สำเร็จ", 'error')
             }
 
         } catch (err) {
             console.error(err)
+            showAlert("เกิดข้อผิดพลาด: " + err.message, 'error')
         }
     }
 

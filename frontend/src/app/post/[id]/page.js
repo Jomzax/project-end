@@ -19,6 +19,7 @@ export default function PostDetailPage() {
 
   const [post, setPost] = useState(null)
   const [comments, setComments] = useState([])
+  const [commentLikes, setCommentLikes] = useState({});
 
   /* ================= โหลดกระทู้ ================= */
   const loadPost = async () => {
@@ -57,10 +58,37 @@ export default function PostDetailPage() {
       const res = await fetch(`http://localhost:5000/api/comment/${id}`)
       const data = await res.json()
       setComments(data)
+      loadCommentLikes(data);
     } catch (err) {
       console.error("โหลดคอมเมนต์ไม่สำเร็จ:", err)
     }
   }
+
+  const loadCommentLikes = async (commentsData) => {
+    if (!commentsData?.length) return;
+
+    const ids = [];
+    const walk = (list) => {
+      list.forEach(c => {
+        ids.push(c.id);
+        if (c.replies) walk(c.replies);
+      });
+    };
+    walk(commentsData);
+
+    const res = await fetch(`http://localhost:5000/api/comment/likes/${id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-id": user?.user_id
+      },
+      body: JSON.stringify({ ids })
+    });
+
+    const data = await res.json();
+    setCommentLikes(data);
+  };
+
 
   /* ================= โหลดสถานะ LIKE ================= */
   const loadLikeStatus = async () => {
@@ -201,6 +229,8 @@ export default function PostDetailPage() {
                 comment={comment}
                 level={0}
                 refreshComments={loadComments}
+                commentLikes={commentLikes}
+                setCommentLikes={setCommentLikes}
               />
             ))}
           </div>

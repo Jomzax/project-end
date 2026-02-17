@@ -21,7 +21,9 @@ export default function PostCard({ post, commentsCount, onLike, onEdit, onDelete
   const isOwner = user && user.user_id === post.user_id
   const isAdmin = user?.role === 'admin'
   const canManage = isOwner || isAdmin
-
+  const authorInitial = post?.author
+    ? post.author.charAt(0).toUpperCase()
+    : '?'
 
   return (
     <div className="card shadow-sm mb-4">
@@ -43,7 +45,7 @@ export default function PostCard({ post, commentsCount, onLike, onEdit, onDelete
         <div className="d-flex align-items-center text-muted small mb-3">
 
           <div className="avatar-circle me-2">
-            {post.author.charAt(0).toUpperCase()}
+            {authorInitial}
           </div>
 
           <div className="post-meta">
@@ -74,7 +76,7 @@ export default function PostCard({ post, commentsCount, onLike, onEdit, onDelete
               {canManage && (
                 <div className="ms-auto position-relative">
 
-                
+
                   {openMenu && (
                     <div className="post-menu">
                       <div

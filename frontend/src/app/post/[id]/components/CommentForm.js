@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { useParams } from 'next/navigation'
+import { useAlert } from '@/app/lib/alert-context'
 
 export default function CommentForm({ onSuccess, currentUser }) {
   const { id } = useParams()
+  const { showAlert } = useAlert()
   const [text, setText] = useState('')
   const [focus, setFocus] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -14,12 +16,12 @@ export default function CommentForm({ onSuccess, currentUser }) {
   const handleSubmit = async () => {
 
     if (!currentUser || !currentUser.user_id) {
-      alert("กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็น")
+      showAlert("กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็น", 'warning')
       return
     }
 
     if (text.length > MAX_COMMENT_LENGTH) {
-      alert("ข้อความยาวเกินกำหนด")
+      showAlert("ข้อความยาวเกินกำหนด", 'warning')
       return
     }
 
@@ -50,7 +52,7 @@ export default function CommentForm({ onSuccess, currentUser }) {
 
     } catch (err) {
       console.error(err)
-      alert("ส่งความคิดเห็นไม่สำเร็จ")
+      showAlert("ส่งความคิดเห็นไม่สำเร็จ", 'error')
     }
 
     setLoading(false)

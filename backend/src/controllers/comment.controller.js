@@ -1,4 +1,5 @@
 import db from "../db/mysql.js"
+import redis from "../db/redis.js"
 import mongoose from "mongoose"
 import Comment from "../models/mongo/Comment.js"
 
@@ -27,13 +28,24 @@ export const getComments = async (req, res) => {
       .sort({ created_at: 1 })
       .lean()
 
+    // ✅ ดึง like count จาก Redis สำหรับทุก comment (รวม nested)
+    const pipeline = redis.multi();
+    const commentIdToIdx = {};
+
+    comments.forEach((c, idx) => {
+      commentIdToIdx[c._id.toString()] = idx;
+      pipeline.get(`comment:likes:${c._id.toString()}`);
+    });
+    const likeCounts = await pipeline.exec();
+
     const map = {}
     const roots = []
 
-    comments.forEach(c => {
+    comments.forEach((c, idx) => {
       map[c._id] = {
         ...c,
         id: c._id.toString(),
+        likesCount: Number(likeCounts[idx] || 0), // ✅ เพิ่ม like count
         replies: []
       }
     })
@@ -81,6 +93,10 @@ export const createComment = async (req, res) => {
       role: user.role,
       message
     })
+
+    // ✅ Initialize Redis like count เป็น 0
+    const commentId = newComment._id.toString();
+    await redis.set(`comment:likes:${commentId}`, 0);
 
     // ⭐ Atomic +1 (เร็วมาก)
     await db.query(

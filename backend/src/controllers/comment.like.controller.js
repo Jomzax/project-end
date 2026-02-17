@@ -1,38 +1,50 @@
 import redis from "../db/redis.js";
+import Comment from "../models/mongo/Comment.js";
+import mongoose from "mongoose";
 
 /* ================= TOGGLE LIKE ================= */
 export const toggleCommentLike = async (req, res) => {
-    const commentId = req.params.commentId; // ⭐ ไม่แปลงเลข
+    const commentId = req.params.commentId;
     const userId = req.headers["x-user-id"];
 
     if (!userId) return res.status(401).json({ error: "login required" });
     if (!commentId) return res.status(400).json({ error: "invalid id" });
 
-    const userSet = `comment:liked_users:${commentId}`;
-    const likeKey = `comment:likes:${commentId}`;
-    const queueKey = "queue:comment_like_events";
+    try {
+        // ✅ ตรวจสอบว่า comment มีจริง
+        const comment = await Comment.findById(commentId);
+        if (!comment) return res.status(404).json({ error: "comment not found" });
 
-    const liked = await redis.sIsMember(userSet, userId);
+        const userSet = `comment:liked_users:${commentId}`;
+        const likeKey = `comment:likes:${commentId}`;
+        const queueKey = "queue:comment_like_events";
 
-    let newLiked;
-    let likes;
+        const liked = await redis.sIsMember(userSet, userId);
 
-    if (liked) {
-        await redis.sRem(userSet, userId);
-        likes = await redis.decr(likeKey);
-        newLiked = false;
+        let newLiked;
+        let likes;
 
-        await redis.rPush(queueKey, JSON.stringify({ commentId, userId, action: "unlike" }));
+        if (liked) {
+            await redis.sRem(userSet, userId);
+            likes = await redis.decr(likeKey);
+            newLiked = false;
 
-    } else {
-        await redis.sAdd(userSet, userId);
-        likes = await redis.incr(likeKey);
-        newLiked = true;
+            await redis.rPush(queueKey, JSON.stringify({ commentId, userId, action: "unlike" }));
 
-        await redis.rPush(queueKey, JSON.stringify({ commentId, userId, action: "like" }));
+        } else {
+            await redis.sAdd(userSet, userId);
+            likes = await redis.incr(likeKey);
+            newLiked = true;
+
+            await redis.rPush(queueKey, JSON.stringify({ commentId, userId, action: "like" }));
+        }
+
+        res.json({ liked: newLiked, likes: Number(likes) || 0 });
+
+    } catch (err) {
+        console.error("toggleCommentLike error:", err);
+        res.status(500).json({ error: "toggle like failed" });
     }
-
-    res.json({ liked: newLiked, likes: Number(likes) || 0 });
 };
 
 

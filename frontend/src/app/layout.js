@@ -7,7 +7,9 @@ import { Inter } from 'next/font/google'
 
 
 import { AuthProvider } from '@/app/lib/auth-context'
+import { AlertProvider } from '@/app/lib/alert-context'
 import Header from '@/app/components/layout/Header'
+import Alert from '@/app/components/Alert'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,12 +22,15 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}
-      suppressHydrationWarning
+        suppressHydrationWarning
       >
         <BootstrapClient />
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <AlertProvider>
+          <AuthProvider>
+            <Alert />
+            {children}
+          </AuthProvider>
+        </AlertProvider>
 
       </body>
     </html>

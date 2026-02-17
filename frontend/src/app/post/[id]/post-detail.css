@@ -213,6 +213,21 @@
   color: #0d6efd;
 }
 
+.comment-like {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.comment-like:hover {
+  transform: scale(1.05);
+}
+
+.comment-like-container {
+  display: flex;
+}
+
 /* ===== Reply Container ===== */
 .comment-reply-box {
   margin-left: 42px;
@@ -273,33 +288,33 @@
 }
 
 /* ===== Category Badge ===== */
-.category-badge{
-  display:inline-flex;
-  align-items:center;
-  gap:4px;
-  padding:4px 12px;
-  border-radius:20px;
-  font-size:13px;
-  font-weight:500;
-  margin-right:6px;
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-right: 6px;
 }
 
 /* ปักหมุด */
-.category-pin{
-  background:#f3eadf;
-  color:#8b5e3c;
+.category-pin {
+  background: #f3eadf;
+  color: #8b5e3c;
 }
 
 /* มาแรง */
-.category-hot{
-  background:#ffe4e4;
-  color:#e03131;
+.category-hot {
+  background: #ffe4e4;
+  color: #e03131;
 }
 
 /* อาหาร */
-.category-food{
-  background:#e7f1ff;
-  color:#1c7ed6;
+.category-food {
+  background: #e7f1ff;
+  color: #1c7ed6;
 }
 
 .post-menu {
@@ -308,7 +323,7 @@
   top: 28px;
   background: white;
   border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
   border: 1px solid #eee;
   padding: 6px;
   min-width: 150px;

@@ -8,6 +8,7 @@ import { createDiscussion, getAllDiscussions, getDiscussionDetail, getDiscussion
 import { getForumStats } from "../controllers/stats.controller.js"
 import { toggleLike, getLikeStatus } from "../controllers/like.controller.js"
 import { authRequired } from "../middlewares/auth.js"
+import { toggleCommentLike, getCommentsLikeStatus } from "../controllers/comment.like.controller.js";
 
 const router = express.Router();
 
@@ -39,5 +40,7 @@ router.get("/stats", getForumStats);
 /* ================= LIKE ================= */
 router.post("/discussion/:postId/like", authRequired, toggleLike)
 router.get("/discussion/:postId/like", authRequired, getLikeStatus)
+router.post("/comment/:commentId/like", toggleCommentLike);
+router.post("/comment/likes/:discussionId", getCommentsLikeStatus);
 
 export default router;

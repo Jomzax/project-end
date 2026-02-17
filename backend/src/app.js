@@ -8,6 +8,7 @@ import pool from "./db/mysql.js";
 import { connectRedis } from "./db/redis.js";
 import routes from "./routes/index.js";
 import { startLikeWorker } from "./workers/like.worker.js";
+import { startCommentLikeWorker } from "./workers/commentLike.worker.js";
 
 const app = express();
 
@@ -36,6 +37,7 @@ const startServer = async () => {
     app.listen(5000, () => {
       console.log("🚀 Backend running on port 5000");
       startLikeWorker();
+      startCommentLikeWorker();
     });
   } catch (err) {
     console.error("❌ Server startup failed", err);

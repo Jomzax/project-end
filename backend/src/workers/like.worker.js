@@ -62,5 +62,5 @@ export const startLikeWorker = () => {
       }
     }
 
-  }, 5000);
+  }, 1000);
 };

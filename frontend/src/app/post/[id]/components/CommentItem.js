@@ -11,7 +11,9 @@ export default function CommentItem({
   level = 0,
   onDelete,
   onEdit,
-  refreshComments
+  refreshComments,
+  commentLikes,
+  setCommentLikes
 }) {
 
   const { user } = useAuth()
@@ -27,6 +29,45 @@ export default function CommentItem({
 
   // อนุญาตตอบเฉพาะก่อนถึงชั้น 3
   const canReply = level < MAX_DEPTH - 1
+
+  const handleLike = async () => {
+    if (!user) return alert("กรุณาเข้าสู่ระบบ");
+
+    const id = comment._id || comment.id;
+    if (!id) return;
+
+    const current = commentLikes?.[id] || { liked: false, likes: 0 };
+
+    // optimistic
+    setCommentLikes(prev => ({
+      ...prev,
+      [id]: {
+        liked: !current.liked,
+        likes: current.liked ? current.likes - 1 : current.likes + 1
+      }
+    }));
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/comment/${id}/like`, {
+        method: "POST",
+        headers: { "x-user-id": user.user_id }
+      });
+
+      if (!res.ok) throw new Error();
+
+      const data = await res.json();
+
+      setCommentLikes(prev => ({
+        ...prev,
+        [id]: data
+      }));
+
+    } catch {
+      refreshComments();
+    }
+  };
+
+
 
   const handleReplySubmit = async () => {
     if (!replyText.trim()) return
@@ -200,9 +241,24 @@ export default function CommentItem({
 
       {/* FOOTER */}
       <div className="comment-footer">
-        <span className="comment-like">
-          <Heart size={14} /> 0
-        </span>
+        {(() => {
+          const realId = comment._id || comment.id;
+          const likeData = commentLikes?.[realId] || { liked: false, likes: 0 };
+
+          return (
+            <span
+              className="comment-like"
+              onClick={handleLike}
+              style={{ color: likeData.liked ? '#e0245e' : '' }}
+            >
+              <Heart
+                size={14}
+                fill={likeData.liked ? '#e0245e' : 'none'}
+              />
+              {likeData.likes}
+            </span>
+          );
+        })()}
 
         {canReply && (
           <span
@@ -267,6 +323,8 @@ export default function CommentItem({
               onDelete={onDelete}
               onEdit={onEdit}
               refreshComments={refreshComments}
+              commentLikes={commentLikes}
+              setCommentLikes={setCommentLikes}
             />
           ))}
         </div>

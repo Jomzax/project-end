@@ -2,10 +2,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-
+import { useAlert } from '@/app/lib/alert-context'
 
 export default function RegirsterPage() {
     const router = useRouter()
+    const { showAlert } = useAlert()
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -18,19 +19,19 @@ export default function RegirsterPage() {
         e.preventDefault()
 
         if (!name || !email || !password || !confirmPassword) {
-            alert('กรุณากรอกข้อมูลให้ครบ')
+            showAlert('กรุณากรอกข้อมูลให้ครบ', "error")
             return
         }
 
         if (password !== confirmPassword) {
-            alert('รหัสผ่านไม่ตรงกัน')
+            showAlert('รหัสผ่านไม่ตรงกัน', "error")
             return
         }
 
         try {
             setIsLoading(true)
 
-            const res = await fetch('http://localhost:5000/api/auth/register', {
+            const res = await fetch(`http://localhost:5000/api/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -46,7 +47,7 @@ export default function RegirsterPage() {
                 throw new Error(data.error || 'สมัครสมาชิกไม่สำเร็จ')
             }
 
-            alert('สมัครสมาชิกสำเร็จ 🎉')
+            showAlert('สมัครสมาชิกสำเร็จ 🎉', "success")
             router.push('/login')
 
         } catch (err) {

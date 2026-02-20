@@ -4,29 +4,31 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/app/lib/auth-context'
+import { useAlert } from '@/app/lib/alert-context'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { showAlert } = useAlert()
   const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  
-  
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (!email || !password) {
-      alert('กรุณากรอกอีเมลและรหัสผ่าน')
+      showAlert('กรุณากรอกอีเมลและรหัสผ่าน', "error")
       return
     }
 
     try {
       setIsLoading(true)
 
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch(`http://localhost:5000/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -38,12 +40,11 @@ export default function LoginPage() {
         throw new Error(data.error || 'เข้าสู่ระบบไม่สำเร็จ')
       }
 
-      
+
       login(data.user); // 👈 ใช้ data.user ตรง ๆ  // บันทึกข้อมูลผู้ใช้ใน context
 
-      alert('เข้าสู่ระบบสำเร็จ 🎉')
-      
-    
+      showAlert('เข้าสู่ระบบสำเร็จ 🎉', "success")
+
       // 👉 ไปหน้า forum
       router.push('/forum')
 

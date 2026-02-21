@@ -110,6 +110,7 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
     const [editingDraft, setEditingDraft] = useState(null)
     const [searchIcon, setSearchIcon] = useState('')
     const [debouncedSearchIcon, setDebouncedSearchIcon] = useState('')
+    const [debouncedSearch, setDebouncedSearch] = useState(globalSearch || '')
     const [saving, setSaving] = useState(false)
     const [confirmDialog, setConfirmDialog] = useState({
         isOpen: false,
@@ -128,27 +129,39 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
         return () => clearTimeout(timer)
     }, [searchIcon])
 
-    // Fetch categories from server
+    // Debounce global search for categories (sync from parent)
+    useEffect(() => {
+        const t = setTimeout(() => setDebouncedSearch((globalSearch || '').trim()), 300)
+        return () => clearTimeout(t)
+    }, [globalSearch])
+
+    // Fetch categories from server (search is server-side)
     const fetchCategories = useCallback(async () => {
         try {
             setLoading(true)
-            const response = await fetch(
-                `http://localhost:5000/api/category/dropdown?page=${page}&limit=10`
-            )
+            let url = `http://localhost:5000/api/category/dropdown?page=${page}&limit=10`
+            if (debouncedSearch) {
+                url += `&search=${encodeURIComponent(debouncedSearch)}`
+            }
+            const response = await fetch(url)
             const data = await response.json()
             setCategories(data.data || [])
             setTotalPages(data.pagination?.totalPages || 1)
         } catch (error) {
-            console.error(error)
         } finally {
             setLoading(false)
         }
-    }, [page])
+    }, [page, debouncedSearch])
 
     // Load categories on mount and page change
     useEffect(() => {
         fetchCategories()
     }, [fetchCategories])
+
+    // Reset to page 1 when search term changes
+    useEffect(() => {
+        setPage(1)
+    }, [debouncedSearch])
 
     // Initialize create modal
     useEffect(() => {
@@ -188,7 +201,6 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
                 })
                 if (!res.ok) {
                     const errText = await res.text().catch(() => '')
-                    console.error('Delete failed', res.status, errText)
                     showAlert(`ลบไม่สำเร็จ (status ${res.status})`, 'error')
                     return
                 }
@@ -196,7 +208,6 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
                 setEditingCategory(null)
                 showAlert(`ลบ ${categoryName} เรียบร้อย`, 'success')
             } catch (error) {
-                console.error('Delete error:', error)
                 showAlert('เกิดข้อผิดพลาดขณะลบ', 'error')
             } finally {
                 setSaving(false)
@@ -224,14 +235,14 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
 
         // Validate name and slug before sending
         const invalidName = !payload.name || /[\/\*\-\s]/.test(payload.name)
-        const slugValid = payload.slug && /^[a-z0-9_]+$/.test(payload.slug)
+        const slugValid = payload.slug && /^[a-z]+$/.test(payload.slug)
 
         if (invalidName) {
             showAlert('ชื่อหมวดหมู่ไม่สามารถเว้นว่างหรือมีอักขระ / * - หรือช่องว่างได้', 'error')
             return
         }
         if (!slugValid) {
-            showAlert('ช่องอังกฤษ (slug) ต้องเป็นตัวพิมพ์เล็ก ตัวเลข หรือ underscore เท่านั้น', 'error')
+            showAlert('ช่องอังกฤษ (slug) ต้องเป็นตัวพิมพ์เล็ก เท่านั้น (ห้ามเว้นว่างหรือมีช่องว่าง/อักขระพิเศษ/ ตัวเลข หรือ underscore)', 'error')
             return
         }
 
@@ -245,8 +256,12 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
 
             if (!res.ok) {
                 const errText = await res.text().catch(() => '')
-                console.error('Update failed', res.status, errText)
-                showAlert(`บันทึกไม่สำเร็จ (status ${res.status})`, 'error')
+                let errMsg = `บันทึกไม่สำเร็จ (status ${res.status})`
+                try {
+                    const data = JSON.parse(errText)
+                    if (data?.message) errMsg = data.message
+                } catch (_) {}
+                showAlert(errMsg, 'error')
                 return
             }
 
@@ -259,7 +274,6 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
             showAlert('บันทึกข้อมูลเรียบร้อย', 'success')
 
         } catch (error) {
-            console.error('Update error:', error)
             showAlert('เกิดข้อผิดพลาดขณะบันทึก', 'error')
         } finally {
             setSaving(false)
@@ -337,7 +351,7 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredCategories.map(category => (
+                                    {categories.map(category => (
                                         <tr key={category.category_id}>
                                             <td>
                                                 <div className="name-cell">
@@ -490,7 +504,8 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
                                 onChange={(e) => setSearchIcon(e.target.value)}
                                 placeholder="ค้นหาไอคอน เช่น heart, star, home..."
                             />
-
+                            
+                            
                             <div className="icon-picker-grid">
                                 {filteredIcons.length === 0 ? (
                                     <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '20px', color: '#999' }}>
@@ -568,8 +583,8 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
                                             return
                                         }
 
-                                        if (!slug || !/^[a-z0-9_]+$/.test(slug)) {
-                                            showAlert('ช่องอังกฤษ (slug) ต้องเป็นตัวพิมพ์เล็ก ตัวเลข หรือ underscore เท่านั้น (ห้ามเว้นว่างหรือมีช่องว่าง/อักขระพิเศษ)', 'error')
+                                        if (!slug || !/^[a-z]+$/.test(slug)) {
+                                            showAlert('ช่องอังกฤษ (slug) ต้องเป็นตัวพิมพ์เล็ก เท่านั้น (ห้ามเว้นว่างหรือมีช่องว่าง/อักขระพิเศษ/ ตัวเลข หรือ underscore)', 'error')
                                             return
                                         }
 
@@ -591,8 +606,12 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
                                             })
                                             if (!res.ok) {
                                                 const txt = await res.text().catch(() => '')
-                                                console.error('Create failed', res.status, txt)
-                                                showAlert(`สร้างไม่สำเร็จ (status ${res.status})`, 'error')
+                                                let errMsg = `สร้างไม่สำเร็จ (status ${res.status})`
+                                                try {
+                                                    const data = JSON.parse(txt)
+                                                    if (data?.message) errMsg = data.message
+                                                } catch (_) {}
+                                                showAlert(errMsg, 'error')
                                                 return
                                             }
                                             await fetchCategories()
@@ -600,7 +619,6 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
                                             if (setOpenCreate) setOpenCreate(false)
                                             showAlert('สร้างหมวดหมู่เรียบร้อย', 'success')
                                         } catch (err) {
-                                            console.error('Create error', err)
                                             showAlert('เกิดข้อผิดพลาดขณะสร้าง', 'error')
                                         } finally {
                                             setSaving(false)

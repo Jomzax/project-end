@@ -37,10 +37,21 @@ export const getAdminUsers = async (req, res) => {
         const page = parseInt(req.query.page) || 1
         const limit = parseInt(req.query.limit) || 10
         const offset = (page - 1) * limit
+        const searchRaw = (req.query.search || req.query.q || '').trim()
+        const search = searchRaw ? String(searchRaw) : null
+
+        const whereClause = search
+            ? `WHERE (u.username LIKE CONCAT('%', ?, '%') OR u.email LIKE CONCAT('%', ?, '%'))`
+            : ''
+        const whereClauseSimple = search
+            ? `WHERE (username LIKE CONCAT('%', ?, '%') OR email LIKE CONCAT('%', ?, '%'))`
+            : ''
+        const countWhere = search ? `WHERE (username LIKE CONCAT('%', ?, '%') OR email LIKE CONCAT('%', ?, '%'))` : ''
+        const mainParams = search ? [search, search, limit, offset] : [limit, offset]
+        const countParams = search ? [search, search] : []
 
         let rows = []
         try {
-            // Try to select with promoted_by and active ban info if columns/tables exist
             const [result] = await pool.query(`
                 SELECT u.user_id, u.username, u.email, u.role, u.created_at, u.promoted_by,
                        CASE WHEN ub.user_id IS NULL THEN 0 ELSE 1 END AS is_banned,
@@ -49,27 +60,28 @@ export const getAdminUsers = async (req, res) => {
                 LEFT JOIN (
                     SELECT user_id, reason, expires_at
                     FROM user_bans
-                    WHERE expires_at IS NULL OR expires_at > NOW()
+                    WHERE expires_at IS NULL OR expires_at >= CURDATE()
                     ORDER BY created_at DESC
                 ) ub ON ub.user_id = u.user_id
+                ${whereClause}
                 ORDER BY u.user_id ASC
                 LIMIT ? OFFSET ?
-            `, [limit, offset])
+            `, mainParams)
             rows = result
         } catch (err) {
-            // Fallback: select without promoted_by or ban join
             const [result] = await pool.query(`
                 SELECT user_id, username, email, role, created_at
                 FROM users
+                ${whereClauseSimple}
                 ORDER BY user_id ASC
                 LIMIT ? OFFSET ?
-            `, [limit, offset])
+            `, mainParams)
             rows = result.map(row => ({ ...row, promoted_by: null, is_banned: 0, ban_reason: null, ban_expires_at: null }))
         }
 
         const [[{ total }]] = await pool.query(`
-            SELECT COUNT(*) as total FROM users
-        `)
+            SELECT COUNT(*) as total FROM users ${countWhere}
+        `, countParams)
 
         res.json({
             data: rows,

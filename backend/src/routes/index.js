@@ -9,7 +9,8 @@ import { createDiscussion, getAllDiscussions, getDiscussionDetail, getDiscussion
 import { getForumStats } from "../controllers/stats.controller.js"
 import { toggleLike, getLikeStatus } from "../controllers/like.controller.js"
 import { authRequired, adminRequired } from "../middlewares/auth.js"
-import { unbanUser, checkUserBan, banUser } from "../controllers/ban.controller.js";
+import { checkBan } from "../middlewares/checkBan.js";
+import { unbanUser, checkUserBan, banUser, getAllBans } from "../controllers/ban.controller.js";
 import { toggleCommentLike, getCommentsLikeStatus } from "../controllers/comment.like.controller.js";
 
 const router = express.Router();
@@ -20,11 +21,12 @@ router.post("/auth/login", login);
 
 /* ================= USER ================= */
 router.get("/user", getAllUsers);
-router.get("/admin/users", authRequired, adminRequired, getAdminUsers);
-router.put("/admin/users/:id/make-admin", authRequired, adminRequired, makeUserAdmin);
-router.put("/admin/users/:id/remove-admin", authRequired, adminRequired, removeAdminStatus);
+router.get("/admin/users", authRequired, checkBan, adminRequired, getAdminUsers);
+router.put("/admin/users/:id/make-admin", authRequired, checkBan, adminRequired, makeUserAdmin);
+router.put("/admin/users/:id/remove-admin", authRequired, checkBan, adminRequired, removeAdminStatus);
 
 /* ================= BAN ================= */
+router.get("/admin/bans", authRequired, checkBan, adminRequired, getAllBans);
 router.post("/admin/users/:user_id/ban", banUser);
 router.delete("/admin/users/:user_id/ban", unbanUser);
 router.get("/admin/users/:user_id/ban", checkUserBan);
@@ -54,8 +56,8 @@ router.delete("/comment/:id", deleteComment)
 router.get("/stats", getForumStats);
 
 /* ================= LIKE ================= */
-router.post("/discussion/:postId/like", authRequired, toggleLike)
-router.get("/discussion/:postId/like", authRequired, getLikeStatus)
+router.post("/discussion/:postId/like", authRequired, checkBan, toggleLike)
+router.get("/discussion/:postId/like", authRequired, checkBan, getLikeStatus)
 router.post("/comment/:commentId/like", toggleCommentLike);
 router.post("/comment/likes/:discussionId", getCommentsLikeStatus);
 

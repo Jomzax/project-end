@@ -55,7 +55,7 @@ export default function AdminPage() {
           { label: 'ความคิดเห็น', value: data.comments || 0, icon: <MessageSquare size={28} /> },
           { label: 'ผู้ใช้', value: data.users || 0, icon: <Users size={28} /> },
           { label: 'ยอดชม', value: data.views || 0, icon: <Eye size={28} /> },
-          { label: 'ไลค์', value: 0, icon: <ThumbsUp size={28} /> },
+          { label: 'ไลค์', value: data.likes || 0, icon: <ThumbsUp size={28} /> },
           { label: 'รายงานผิด', value: 0, icon: <Flag size={28} /> },
         ])
 
@@ -65,7 +65,7 @@ export default function AdminPage() {
           { id: 'discussions', icon: <Notebook size={18} />, label: 'กระทู้', count: data.discussions || 0 },
           { id: 'categories', icon: <Grid3x3 size={18} />, label: 'หมวดหมู่', count: data.categories || 0 },
           { id: 'users', icon: <Users size={18} />, label: 'ผู้ใช้', count: data.users || 0 },
-          { id: 'bans', icon: <Ban size={18} />, label: 'ประวัติการแบน', count: 0 },
+          { id: 'bans', icon: <Ban size={18} />, label: 'ประวัติการแบน', count: data.bans || 0 },
         ])
 
       } catch (error) {

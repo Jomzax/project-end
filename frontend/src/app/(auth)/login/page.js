@@ -34,22 +34,26 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password })
       })
 
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
 
       if (!res.ok) {
+        if (res.status === 403 && data.error === 'banned') {
+          const reason = data.reason || 'ไม่ได้ระบุเหตุผล'
+          const expiresAt = data.expires_at ? ` (แบนถึงวันที่ ${new Date(data.expires_at).toLocaleDateString('th-TH')} )` : ''
+          showAlert(`คุณถูกแบน — เหตุผล: ${reason}${expiresAt}`, 'error')
+          return
+        }
         throw new Error(data.error || 'เข้าสู่ระบบไม่สำเร็จ')
       }
 
-
-      login(data.user); // 👈 ใช้ data.user ตรง ๆ  // บันทึกข้อมูลผู้ใช้ใน context
+      login(data.user)
 
       showAlert('เข้าสู่ระบบสำเร็จ 🎉', "success")
 
-      // 👉 ไปหน้า forum
       router.push('/forum')
 
     } catch (err) {
-      alert(err.message)
+      showAlert(err.message || 'เข้าสู่ระบบไม่สำเร็จ', 'error')
     } finally {
       setIsLoading(false)
     }

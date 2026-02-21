@@ -25,11 +25,14 @@ export default function UsersTab({ globalSearch: parentSearch }) {
     const { user: currentUser } = useAuth()
     const { showAlert } = useAlert()
 
-    // Fetch users from API and check ban status per user
+    // Fetch users from API and check ban status per user (search is server-side)
     const fetchUsers = useCallback(async () => {
         try {
             setLoading(true)
-            const url = `http://localhost:5000/api/admin/users?page=${page}&limit=10`
+            let url = `http://localhost:5000/api/admin/users?page=${page}&limit=10`
+            if (debouncedSearch.trim()) {
+                url += `&search=${encodeURIComponent(debouncedSearch.trim())}`
+            }
             const headers = {}
             if (currentUser) {
                 headers['x-user-id'] = String(currentUser.user_id)
@@ -74,7 +77,7 @@ export default function UsersTab({ globalSearch: parentSearch }) {
         } finally {
             setLoading(false)
         }
-    }, [page, showAlert, currentUser])
+    }, [page, debouncedSearch, showAlert, currentUser])
 
     useEffect(() => {
         fetchUsers()
@@ -86,12 +89,17 @@ export default function UsersTab({ globalSearch: parentSearch }) {
         return () => clearTimeout(t)
     }, [search])
 
-    // sync when parent search prop changes
+    // sync when parent search prop changes and reset to page 1 when search changes
     useEffect(() => {
         if (typeof parentSearch !== 'undefined') {
             setSearch(parentSearch)
         }
     }, [parentSearch])
+
+    // reset to first page when search term changes so results make sense
+    useEffect(() => {
+        setPage(1)
+    }, [debouncedSearch])
 
     // Show confirmation dialog
     const showConfirmDialog = (message, onConfirm) => {
@@ -108,9 +116,15 @@ export default function UsersTab({ globalSearch: parentSearch }) {
         showConfirmDialog('คุณแน่ใจหรือว่าต้องการให้ user นี้เป็น Admin?', async () => {
             try {
                 setSaving(true)
+                const headers = { 'Content-Type': 'application/json' }
+                if (currentUser) {
+                    headers['x-user-id'] = String(currentUser.user_id)
+                    if (currentUser.username) headers['x-username'] = String(currentUser.username)
+                    if (currentUser.role) headers['x-role'] = String(currentUser.role)
+                }
                 const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/make-admin`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers,
                     body: JSON.stringify({ by_user_id: currentUser?.user_id })
                 })
                 if (!res.ok) {
@@ -148,9 +162,15 @@ export default function UsersTab({ globalSearch: parentSearch }) {
         showConfirmDialog('คุณแน่ใจหรือว่าต้องการยกเลิกสิทธิ Admin ของ user นี้?', async () => {
             try {
                 setSaving(true)
+                const headers = { 'Content-Type': 'application/json' }
+                if (currentUser) {
+                    headers['x-user-id'] = String(currentUser.user_id)
+                    if (currentUser.username) headers['x-username'] = String(currentUser.username)
+                    if (currentUser.role) headers['x-role'] = String(currentUser.role)
+                }
                 const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/remove-admin`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers
                 })
                 if (!res.ok) {
                     const errText = await res.text().catch(() => '')
@@ -273,13 +293,7 @@ export default function UsersTab({ globalSearch: parentSearch }) {
         )
     }
 
-    // client-side filter based on debounced search
-    const filteredUsers = users.filter(u => {
-        if (!debouncedSearch.trim()) return true
-        const s = debouncedSearch.toLowerCase()
-        return (u.username && u.username.toLowerCase().includes(s)) || (u.email && u.email.toLowerCase().includes(s))
-    })
-
+    // Search is done on the server; no client-side filter needed
     return (
         <div className="users-tab">
             <div className="content-area">
@@ -296,7 +310,7 @@ export default function UsersTab({ globalSearch: parentSearch }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredUsers.map(user => (
+                            {users.map(user => (
                                 <tr key={user.user_id || user.id} style={user.is_banned ? { borderLeft: '4px solid #d35400' } : {}}>
                                     <td>
                                         <div className="user-cell">
@@ -312,8 +326,6 @@ export default function UsersTab({ globalSearch: parentSearch }) {
                                                 <span className="badge-banned">🚫 แบน</span>
                                             ) : user.role === 'admin' ? (
                                                 <span className="badge-admin">👨‍💼 Admin</span>
-                                            ) : user.ever_banned ? (
-                                                <span className="badge-banned-ever" style={{ opacity: 0.7 }}>🚫 โดนแบนแล้ว</span>
                                             ) : (
                                                 <span className="badge-user">👤 User</span>
                                             )}

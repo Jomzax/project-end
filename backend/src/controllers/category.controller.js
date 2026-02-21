@@ -1,26 +1,35 @@
-import { json } from "stream/consumers";    
+import { json } from "stream/consumers";
 import pool from "../db/mysql.js";
 
 export const getCategoryDropdown = async (req, res) => {
     try {
         let page = parseInt(req.query.page)
         let limit = parseInt(req.query.limit)
+        const searchRaw = (req.query.search || req.query.q || '').trim()
+        const search = searchRaw ? String(searchRaw) : null
 
         if (isNaN(page) || page < 1) page = 1
         if (isNaN(limit) || limit < 1) limit = 10
 
         const offset = (page - 1) * limit
 
+        const whereClause = search
+            ? `WHERE (name LIKE CONCAT('%', ?, '%') OR slug LIKE CONCAT('%', ?, '%'))`
+            : ''
+        const listParams = search ? [search, search, limit, offset] : [limit, offset]
+        const countParams = search ? [search, search] : []
+
         const [rows] = await pool.query(`
             SELECT category_id, name, slug, icon, color
             FROM categories
+            ${whereClause}
             ORDER BY category_id ASC
-            LIMIT ${offset}, ${limit}
-        `)
+            LIMIT ? OFFSET ?
+        `, listParams)
 
         const [countRows] = await pool.query(`
-            SELECT COUNT(*) as total FROM categories
-        `)
+            SELECT COUNT(*) as total FROM categories ${whereClause}
+        `, countParams)
 
         const total = countRows[0].total
 
@@ -36,7 +45,7 @@ export const getCategoryDropdown = async (req, res) => {
         })
 
     } catch (error) {
-        console.error("🔥 CATEGORY ERROR:", error)
+        console.error("CATEGORY ERROR:", error)
         res.status(500).json({
             success: false,
             message: error.message
@@ -56,6 +65,25 @@ export const updateCategory = async (req, res) => {
                 success: false,
                 message: "Name และ Slug ห้ามว่าง"
             });
+        }
+
+        // เช็ค slug และ name ซ้ำ (ไม่นับแถวของตัวเอง)
+        const [slugExists] = await pool.query(
+            "SELECT category_id FROM categories WHERE slug = ? AND category_id != ?",
+            [slug, id]
+        );
+        const [nameExists] = await pool.query(
+            "SELECT category_id FROM categories WHERE name = ? AND category_id != ?",
+            [name, id]
+        );
+        const errors = [];
+        if (slugExists.length > 0) errors.push(`คำอังกฤษ "${slug}" ถูกใช้ไปแล้ว`);
+        if (nameExists.length > 0) errors.push(`ชื่อหมวดหมู่ "${name}" ถูกใช้ไปแล้ว`);
+        if (errors.length > 0) {
+            const message = errors.length === 2
+                ? "ชื่อหมวดหมู่และคำอังกฤษ ถูกใช้ไปแล้ว"
+                : errors.join(" และ ");
+            return res.status(400).json({ success: false, message });
         }
 
         const [result] = await pool.query(
@@ -83,11 +111,18 @@ export const updateCategory = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("🔥 UPDATE CATEGORY ERROR:", error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        const msg = String(error.message || '')
+        if (error.code === 'ER_DUP_ENTRY' || msg.includes('Duplicate entry')) {
+            const match = msg.match(/Duplicate entry '(.+?)' for key|'([^']+)'\s+for key/)
+            const val = match ? (match[1] || match[2] || '').trim() : ''
+            const parts = []
+            if (msg.includes('slug') && !msg.includes('idx_name_unique')) parts.push(`คำอังกฤษ" ${val} "ถูกใช้ไปแล้ว`)
+            if (msg.includes('idx_name_unique')) parts.push(`ชื่อหมวดหมู่ "${val}" ถูกใช้ไปแล้ว`)
+            if (parts.length > 0) {
+                return res.status(400).json({ success: false, message: parts.join(" และ ") });
+            }
+        }
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -104,17 +139,23 @@ export const createCategory = async (req, res) => {
             });
         }
 
-        // เช็ค slug ซ้ำ
-        const [exists] = await pool.query(
+        // เช็ค slug และ name ซ้ำ
+        const [slugExists] = await pool.query(
             "SELECT category_id FROM categories WHERE slug = ?",
             [slug]
         );
-
-        if (exists.length > 0) {
-            return res.status(400).json({
-                success: false,
-                message: "Slug นี้ถูกใช้ไปแล้ว"
-            });
+        const [nameExists] = await pool.query(
+            "SELECT category_id FROM categories WHERE name = ?",
+            [name]
+        );
+        const errors = [];
+        if (slugExists.length > 0) errors.push(`คำอังกฤษ"${slug}" ถูกใช้ไปแล้ว`);
+        if (nameExists.length > 0) errors.push(`ชื่อหมวดหมู่ "${name}" ถูกใช้ไปแล้ว`);
+        if (errors.length > 0) {
+            const message = errors.length === 2
+                ? "ชื่อหมวดหมู่และคำอังกฤษ ถูกใช้ไปแล้ว"
+                : errors.join(" และ ");
+            return res.status(400).json({ success: false, message });
         }
 
         const [result] = await pool.query(
@@ -132,11 +173,18 @@ export const createCategory = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("🔥 CREATE CATEGORY ERROR:", error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        const msg = String(error.message || '')
+        if (error.code === 'ER_DUP_ENTRY' || msg.includes('Duplicate entry')) {
+            const match = msg.match(/Duplicate entry '(.+?)' for key|'([^']+)'\s+for key/)
+            const val = match ? (match[1] || match[2] || '').trim() : ''
+            const parts = []
+            if (msg.includes('slug') && !msg.includes('idx_name_unique')) parts.push(`คำอังกฤษ "${val}" ถูกใช้ไปแล้ว`)
+            if (msg.includes('idx_name_unique')) parts.push(`ชื่อหมวดหมู่ "${val}" ถูกใช้ไปแล้ว`)
+            if (parts.length > 0) {
+                return res.status(400).json({ success: false, message: parts.join(" และ ") });
+            }
+        }
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -164,7 +212,7 @@ export const deleteCategory = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("🔥 DELETE CATEGORY ERROR:", error);
+        console.error(" DELETE CATEGORY ERROR:", error);
         res.status(500).json({
             success: false,
             message: error.message

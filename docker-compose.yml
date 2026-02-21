@@ -7,7 +7,7 @@ services:
   mysql:
     image: mysql:8.0
     container_name: webboard-mysql
-    restart: always
+    restart: no
     environment:
       #รหัสผ่าน root ของ MySQL
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -23,7 +23,7 @@ services:
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: webboard-phpmyadmin
-    restart: always
+    restart: no
     ports:
       - "8080:80"
     environment:
@@ -40,7 +40,7 @@ services:
   mongodb:
     image: mongo:6
     container_name: webboard-mongo
-    restart: always
+    restart: no
     ports:
       - "27017:27017"
     volumes:
@@ -52,7 +52,7 @@ services:
   redis:
     image: redis:7
     container_name: webboard-redis
-    restart: always
+    restart: no
     ports:
       - "6379:6379"
 

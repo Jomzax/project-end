@@ -117,3 +117,29 @@ export const checkUserBan = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
+
+/* ================= GET ALL BANS ================= */
+export const getAllBans = async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT ub.id, ub.user_id, ub.reason, ub.expires_at, ub.banned_by, ub.created_at,
+                   u.username AS username,
+                   admin.username AS banned_by_username
+            FROM user_bans ub
+            LEFT JOIN users u ON ub.user_id = u.user_id
+            LEFT JOIN users admin ON ub.banned_by = admin.user_id
+            WHERE ub.expires_at IS NULL OR ub.expires_at >= CURDATE()
+            ORDER BY ub.created_at DESC
+        `);
+
+        res.json({
+            success: true,
+            count: rows.length,
+            data: rows
+        });
+
+    } catch (err) {
+        console.error("Get all bans error:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+};

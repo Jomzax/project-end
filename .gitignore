@@ -9,6 +9,8 @@
 **/.next/
 **/dist/
 **/build/
+**/.vscode/
+
 
 # logs
 *.log

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useMemo, memo, useCallback, useRef } from 'react'
 import * as Icons from 'lucide-react'
@@ -112,12 +112,6 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
     const [debouncedSearchIcon, setDebouncedSearchIcon] = useState('')
     const [debouncedSearch, setDebouncedSearch] = useState(globalSearch || '')
     const [saving, setSaving] = useState(false)
-    const [confirmDialog, setConfirmDialog] = useState({
-        isOpen: false,
-        message: '',
-        onConfirm: null,
-        onCancel: null
-    })
     const { showAlert } = useAlert()
 
     // ==================== Effects & Debouncing ====================
@@ -139,7 +133,7 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
     const fetchCategories = useCallback(async () => {
         try {
             setLoading(true)
-            let url = `http://localhost:5000/api/category/dropdown?page=${page}&limit=10`
+            let url = `http://localhost:5000/api/category/dropdown?page=${page}&limit=20`
             if (debouncedSearch) {
                 url += `&search=${encodeURIComponent(debouncedSearch)}`
             }
@@ -180,39 +174,33 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
 
     // ==================== API Handlers ====================
 
-    // Show confirmation dialog
-    const showConfirmDialog = (message, onConfirm) => {
-        setConfirmDialog({
-            isOpen: true,
-            message,
-            onConfirm,
-            onCancel: () => setConfirmDialog(prev => ({ ...prev, isOpen: false }))
-        })
-    }
-
     // Delete category
     const handleDeleteCategory = useCallback(async (categoryId, categoryName) => {
-        showConfirmDialog(`คุณแน่ใจหรือว่าต้องการลบหมวดหมู่ ${categoryName}?`, async () => {
-            try {
-                setSaving(true)
-                const res = await fetch(`http://localhost:5000/api/category/${categoryId}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
-                })
-                if (!res.ok) {
-                    const errText = await res.text().catch(() => '')
-                    showAlert(`ลบไม่สำเร็จ (status ${res.status})`, 'error')
-                    return
+        showAlert(
+            `คุณแน่ใจหรือว่าต้องการลบหมวดหมู่ ${categoryName}?`,
+            'confirm',
+            'ยืนยัน',
+            async () => {
+                try {
+                    setSaving(true)
+                    const res = await fetch(`http://localhost:5000/api/category/${categoryId}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    if (!res.ok) {
+                        showAlert(`ลบไม่สำเร็จ (status ${res.status})`, 'error')
+                        return
+                    }
+                    await fetchCategories()
+                    setEditingCategory(null)
+                    showAlert(`ลบ ${categoryName} เรียบร้อย`, 'success')
+                } catch (error) {
+                    showAlert('เกิดข้อผิดพลาดขณะลบ', 'error')
+                } finally {
+                    setSaving(false)
                 }
-                await fetchCategories()
-                setEditingCategory(null)
-                showAlert(`ลบ ${categoryName} เรียบร้อย`, 'success')
-            } catch (error) {
-                showAlert('เกิดข้อผิดพลาดขณะลบ', 'error')
-            } finally {
-                setSaving(false)
             }
-        })
+        )
     }, [showAlert, fetchCategories])
 
     // ==================== Data Processing ====================
@@ -242,7 +230,7 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
             return
         }
         if (!slugValid) {
-            showAlert('ช่องอังกฤษ (slug) ต้องเป็นตัวพิมพ์เล็ก เท่านั้น (ห้ามเว้นว่างหรือมีช่องว่าง/อักขระพิเศษ/ ตัวเลข หรือ underscore)', 'error')
+            showAlert('ช่องอังกฤษ ต้องเป็นตัวพิมพ์เล็ก เท่านั้น (ห้ามเว้นว่างหรือมีช่องว่าง/อักขระพิเศษ/ ตัวเลข หรือ underscore)', 'error')
             return
         }
 
@@ -414,40 +402,42 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
 
                         </div>
 
-                        {/* Pagination placed inside content-area so it stays next to the table */}
-                        <div className="admin-pagination">
-                            <nav className="pagination-wrapper">
-                                <ul className="pagination">
-                                    <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
-                                        <button
-                                            className="page-link"
-                                            onClick={() => setPage(prev => prev - 1)}
-                                            disabled={page === 1}
-                                        >
-                                            Previous
-                                        </button>
-                                    </li>
-
-                                    <li className="page-item active">
-                                        <span className="page-link">{page}</span>
-                                    </li>
-
-                                    <li className={`page-item ${page >= totalPages ? "disabled" : ""}`}>
-                                        <button
-                                            className="page-link"
-                                            onClick={() => setPage(prev => prev + 1)}
-                                            disabled={page >= totalPages}
-                                        >
-                                            Next
-                                        </button>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </div>
                     </>
                 )}
 
             </div>
+
+            {!loading && filteredCategories.length > 0 && (
+                <div className="admin-pagination">
+                    <nav className="pagination-wrapper">
+                        <ul className="pagination">
+                            <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
+                                <button
+                                    className="page-link"
+                                    onClick={() => setPage(prev => prev - 1)}
+                                    disabled={page === 1}
+                                >
+                                    Previous
+                                </button>
+                            </li>
+
+                            <li className="page-item active">
+                                <span className="page-link">{page}</span>
+                            </li>
+
+                            <li className={`page-item ${page >= totalPages ? "disabled" : ""}`}>
+                                <button
+                                    className="page-link"
+                                    onClick={() => setPage(prev => prev + 1)}
+                                    disabled={page >= totalPages}
+                                >
+                                    Next
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            )}
 
             {
                 (editingCategory || openCreate) && (
@@ -505,7 +495,7 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
                                 placeholder="ค้นหาไอคอน เช่น heart, star, home..."
                             />
                             
-                            
+
                             <div className="icon-picker-grid">
                                 {filteredIcons.length === 0 ? (
                                     <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '20px', color: '#999' }}>
@@ -632,38 +622,8 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
                     </div>
                 )
             }
-
-            {/* Confirmation Dialog Modal */}
-            {confirmDialog.isOpen && (
-                <div className="confirm-overlay">
-                    <div className="confirm-modal">
-                        <div className="confirm-header">
-                            <h3>ยืนยัน</h3>
-                        </div>
-                        <div className="confirm-body">
-                            <p>{confirmDialog.message}</p>
-                        </div>
-                        <div className="confirm-footer">
-                            <button 
-                                className="confirm-btn confirm-btn-cancel"
-                                onClick={confirmDialog.onCancel}
-                            >
-                                ยกเลิก
-                            </button>
-                            <button 
-                                className="confirm-btn confirm-btn-confirm"
-                                onClick={() => {
-                                    confirmDialog.onConfirm()
-                                    confirmDialog.onCancel()
-                                }}
-                            >
-                                ยืนยัน
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     )
 
 }
+

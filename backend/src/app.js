@@ -9,6 +9,7 @@ import { connectRedis } from "./db/redis.js";
 import routes from "./routes/index.js";
 import { startLikeWorker } from "./workers/like.worker.js";
 import { startCommentLikeWorker } from "./workers/commentLike.worker.js";
+import { startHotEventCleanupJob } from "./services/hotness.service.js";
 
 const app = express();
 
@@ -38,6 +39,7 @@ const startServer = async () => {
       console.log("🚀 Backend running on port 5000");
       startLikeWorker();
       startCommentLikeWorker();
+      startHotEventCleanupJob({ retentionDays: 2, intervalMinutes: 60 });
     });
   } catch (err) {
     console.error("❌ Server startup failed", err);

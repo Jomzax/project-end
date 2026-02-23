@@ -1,7 +1,11 @@
 import redis from "../db/redis.js";
 import pool from "../db/mysql.js";
+import { ensureHotEventTables } from "../services/hotness.service.js";
 
 export const startLikeWorker = () => {
+  ensureHotEventTables().catch((err) => {
+    console.error("init hot event tables error:", err);
+  });
 
   setInterval(async () => {
 
@@ -27,6 +31,10 @@ export const startLikeWorker = () => {
           if (!exists.length) {
             await conn.query(
               "INSERT INTO discussion_likes (discussion_id,user_id) VALUES (?,?)",
+              [postId, userId]
+            );
+            await conn.query(
+              "INSERT INTO discussion_like_events (discussion_id, user_id) VALUES (?, ?)",
               [postId, userId]
             );
 

@@ -86,10 +86,18 @@
   background-color: #e5e7eb;
   color: #000;
   text-decoration: none;
+  overflow: hidden;
 }
 
 .avatar-btn:hover {
   background-color: #d1d5db;
+}
+
+.avatar-btn-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 /* ================= BUTTON HOVER ================= */

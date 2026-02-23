@@ -2,6 +2,7 @@ import db from "../db/mysql.js"
 import redis from "../db/redis.js"
 import mongoose from "mongoose"
 import Comment from "../models/mongo/Comment.js"
+import { ensureHotEventTables } from "../services/hotness.service.js"
 
 /* ================= DEPTH HELPER ================= */
 const getDepth = async (parentId) => {
@@ -76,6 +77,8 @@ export const getComments = async (req, res) => {
 /* ================= CREATE COMMENT ================= */
 export const createComment = async (req, res) => {
   try {
+    await ensureHotEventTables()
+
     const { discussionId, parentId, message, user } = req.body
 
     if (parentId) {
@@ -104,6 +107,11 @@ export const createComment = async (req, res) => {
        SET comment_count = comment_count + 1
        WHERE discussion_id = ?`,
       [discussionId]
+    )
+
+    await db.query(
+      `INSERT IGNORE INTO discussion_comment_events (discussion_id, comment_id, user_id) VALUES (?, ?, ?)`,
+      [Number(discussionId), commentId, Number(user?.id || 0) || null]
     )
 
     res.json(newComment)

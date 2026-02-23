@@ -6,15 +6,44 @@
 
 .users-wrapper {
     width: 100%;
+    max-width: 100%;
     overflow-x: auto;
 }
 
 .users-table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     background-color: #fff;
+    border: 1px solid #e5e7eb;
     border-radius: 8px;
     overflow: hidden;
+}
+
+.users-table th:nth-child(1),
+.users-table td:nth-child(1) {
+    width: 18%;
+}
+
+.users-table th:nth-child(2),
+.users-table td:nth-child(2) {
+    width: 28%;
+}
+
+.users-table th:nth-child(3),
+.users-table td:nth-child(3) {
+    width: 18%;
+}
+
+.users-table th:nth-child(4),
+.users-table td:nth-child(4) {
+    width: 18%;
+}
+
+.users-table th:nth-child(5),
+.users-table td:nth-child(5) {
+    width: 18%;
+    text-align: center;
 }
 
 .users-table thead {
@@ -48,7 +77,19 @@
 .users-table td {
     padding: 14px 16px;
     font-size: 14px;
+    font-weight: 600;
     color: #1f2937;
+    vertical-align: middle;
+}
+
+.users-table th,
+.users-table td {
+    white-space: nowrap;
+}
+
+.users-table td:nth-child(2) {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .user-cell {
@@ -99,9 +140,24 @@
     font-weight: 600;
 }
 
-.actions-cell {
-    display: flex;
-    gap: 8px;
+.users-table .actions-cell {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(44px, auto);
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    min-height: 44px;
+}
+
+.users-table .btn-make-admin,
+.users-table .btn-remove-admin,
+.users-table .btn-ban-user {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 12px;
 }
 
 .btn-make-admin {
@@ -173,14 +229,21 @@
 .btn-unban-user {
     padding: 6px 10px;
     border: none;
-    border-radius: 4px;
+    border-radius: 10px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    min-height: 44px;
     transition: all 0.2s;
     background-color: #dc2626;
     color: #ffffff;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.btn-unban-user svg {
+    margin-right: 0 !important;
 }
 
 .btn-unban-user:hover:not(:disabled) {
@@ -195,22 +258,26 @@
 
 /* Admin pagination */
 .admin-pagination {
-    margin-top: 12px;
-    padding: 8px 0;
+    margin-top: 16px;
+    padding: 14px 18px;
     display: flex;
     justify-content: center;
-    background: transparent;
-    border-radius: 8px;
+    border: 1px solid #d7dce4;
+    border-radius: 20px;
+    background: #eef0f3;
 }
 
 .pagination-wrapper {
     display: flex;
     justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
 }
 
 .pagination {
     display: flex;
-    gap: 4px;
+    gap: 12px;
     list-style: none;
     padding: 0;
     margin: 0;
@@ -221,32 +288,41 @@
 }
 
 .page-link {
-    padding: 8px 12px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #cfd5df;
     background: white;
-    color: #374151;
+    color: #1f2937;
     cursor: pointer;
-    border-radius: 4px;
-    font-size: 13px;
+    border-radius: 12px;
+    min-width: 120px;
+    height: 50px;
+    padding: 0 20px;
+    font-size: 16px;
     font-weight: 500;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 
 .page-link:hover:not(:disabled) {
-    border-color: #3b82f6;
-    color: #3b82f6;
-    background: #eff6ff;
+    border-color: #bac3d1;
+    background: #f8fafc;
 }
 
 .page-item.active .page-link {
-    background-color: #3b82f6;
+    width: 50px;
+    min-width: 50px;
+    padding: 0;
+    background-color: #2f66e8;
     color: white;
-    border-color: #3b82f6;
+    border-color: #2f66e8;
+    box-shadow: 0 6px 14px rgba(47, 102, 232, 0.35);
 }
 
 .page-item.disabled .page-link {
-    opacity: 0.5;
+    color: #c8cfd8;
+    border-color: #dee3ea;
+    background: #edf1f5;
     cursor: not-allowed;
+    box-shadow: none;
 }
 
 .empty-state {
@@ -266,17 +342,89 @@
 }
 
 @media (max-width: 768px) {
+    .users-wrapper {
+        overflow-x: visible;
+    }
+
     .users-table {
-        font-size: 12px;
+        min-width: 100%;
+        border: 0;
+        background: transparent;
+        font-size: 14px;
     }
 
-    .users-table th,
+    .users-table thead {
+        display: none;
+    }
+
+    .users-table,
+    .users-table tbody,
+    .users-table tr,
     .users-table td {
-        padding: 10px 8px;
+        display: block;
+        width: 100%;
     }
 
-    .actions-cell {
-        flex-direction: column;
+    .users-table tbody tr {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        padding: 8px 12px;
+    }
+
+    .users-table td {
+        padding: 8px 0;
+        border: 0;
+        white-space: normal;
+        text-align: left !important;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .users-table td:nth-child(2) {
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    .users-table td::before {
+        content: attr(data-label);
+        flex: 0 0 88px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #6b7280;
+    }
+
+    .users-table td[data-label="การจัดการ"] {
+        display: block;
+        padding-top: 10px;
+        border-top: 1px dashed #e5e7eb;
+        margin-top: 6px;
+    }
+
+    .users-table td[data-label="การจัดการ"]::before {
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .users-table .actions-cell {
+        grid-auto-columns: 44px;
+        justify-content: flex-start;
+    }
+
+    .users-table .btn-unban-user {
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        border-radius: 12px;
+        font-size: 0;
+    }
+
+    .users-table .btn-unban-user svg {
+        width: 18px;
+        height: 18px;
     }
 }
 
@@ -366,7 +514,7 @@
 }
 
 .confirm-btn-confirm {
-    background-color: #3b82f6;
+    background-color: #ff0000;
     color: white;
 }
 

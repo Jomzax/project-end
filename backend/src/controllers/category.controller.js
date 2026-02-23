@@ -9,7 +9,7 @@ export const getCategoryDropdown = async (req, res) => {
         const search = searchRaw ? String(searchRaw) : null
 
         if (isNaN(page) || page < 1) page = 1
-        if (isNaN(limit) || limit < 1) limit = 10
+        if (isNaN(limit) || limit < 1) limit = 20
 
         const offset = (page - 1) * limit
 

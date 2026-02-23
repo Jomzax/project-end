@@ -3,21 +3,33 @@
 import '../page.forum.css'
 import Link from 'next/link'
 import { useAuth } from '@/app/lib/auth-context'
+import { formatTimeAgo } from '@/app/lib/time-format'
+import { getAvatarInitial, normalizeAvatarSrc, pickAvatar } from '@/app/lib/avatar'
 import useDebounce from '@/app/hooks/useDebounce'
-import { useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useState, useMemo, useRef, useCallback, memo } from 'react'
-import { MessageCircle, ThumbsUp, Eye, Calendar, ChevronRight, User, Shield, ArrowUpDown } from 'lucide-react'
+import { MessageCircle, ThumbsUp, Eye, Calendar, ChevronRight, User, Shield, ArrowUpDown, Pin, Flame } from 'lucide-react'
 
 /* ================= POST CARD COMPONENT (MEMOIZED) ================= */
-const PostCard = memo(({ post, query, escapeRegExp }) => {
+const PostCard = memo(({ post, query, escapeRegExp, fromPath }) => {
+  const avatarSrc = normalizeAvatarSrc(pickAvatar(post))
+  const avatarInitial = getAvatarInitial(post.username || '')
+
   // ✅ Format date once
   const formattedDate = useMemo(() => {
     try {
-      return new Date(post.created_at).toLocaleDateString('th-TH')
+      return formatTimeAgo(post.created_at)
     } catch {
       return '-'
     }
   }, [post.created_at])
+
+  const rootCommentCount = useMemo(() => {
+    if (typeof post.root_comment_count === 'number') {
+      return post.root_comment_count
+    }
+    return 0
+  }, [post.root_comment_count])
 
   // ✅ Highlight only title (not excerpt untuk performa)
   const highlightedTitle = useMemo(() => {
@@ -33,17 +45,49 @@ const PostCard = memo(({ post, query, escapeRegExp }) => {
 
   return (
     <Link
-      href={`/post/${post.discussion_id}`}
+      href={`/post/${post.discussion_id}?from=${encodeURIComponent(fromPath)}`}
       className="post-card mb-3"
     >
       <div className="post-left-avatar">
-        {post.username?.charAt(0).toUpperCase()}
+        {avatarSrc ? (
+          <>
+            <img
+              src={avatarSrc}
+              alt={post.username || 'avatar'}
+              className="post-left-avatar-image"
+              onError={(event) => {
+                event.currentTarget.style.display = 'none'
+                const fallback = event.currentTarget.nextElementSibling
+                if (fallback) fallback.style.display = 'flex'
+              }}
+            />
+            <span className="post-left-avatar-fallback" style={{ display: 'none' }}>
+              {avatarInitial}
+            </span>
+          </>
+        ) : (
+          avatarInitial
+        )}
       </div>
 
       <div className="post-content">
         {/* TOP ROW */}
         <div className="post-top">
-          <span className="category-badge">{post.category}</span>
+          <div className="post-tags">
+            {Number(post.is_pinned) === 1 && (
+              <span className="status-badge status-pin">
+                <Pin size={12} />
+                ปักหมุด
+              </span>
+            )}
+            {Number(post.is_hot) === 1 && (
+              <span className="status-badge status-hot">
+                <Flame size={12} />
+                มาแรง
+              </span>
+            )}
+            <span className="category-badge">{post.category}</span>
+          </div>
           <div className="post-date">
             <Calendar size={14} />
             <span>{formattedDate}</span>
@@ -72,7 +116,7 @@ const PostCard = memo(({ post, query, escapeRegExp }) => {
 
           <div className="post-stats">
             <span><ThumbsUp size={14} /> {post.like_count}</span>
-            <span><MessageCircle size={14} /> {post.comment_count}</span>
+            <span><MessageCircle size={14} /> {rootCommentCount}</span>
             <span><Eye size={14} /> {post.view_count}</span>
           </div>
         </div>
@@ -89,6 +133,7 @@ PostCard.displayName = 'PostCard'
 
 export default function ForumPage() {
   /* ================= URL PARAMS ================= */
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const query = searchParams.get('q')?.trim() || ''
   const category = searchParams.get('category') || ''
@@ -112,8 +157,22 @@ export default function ForumPage() {
     discussions: 0
   })
   const [isLoading, setIsLoading] = useState(false)
+  const fromPath = useMemo(() => {
+    const params = new URLSearchParams()
+    if (query) params.set('q', query)
+    if (category) params.set('category', category)
+    if (sort) params.set('sort', sort)
+    if (page > 1) params.set('page', String(page))
+    const queryString = params.toString()
+    return queryString ? `${pathname}?${queryString}` : pathname
+  }, [pathname, query, category, sort, page])
 
   // ✅ Cache stats เพื่อไม่ให้ fetch ซ้ำ
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.sessionStorage.setItem('forum:returnTo', fromPath)
+  }, [fromPath])
+
   const statsLoadedRef = useRef(false)
 
   /* ================= FETCH POSTS ================= */
@@ -179,6 +238,7 @@ export default function ForumPage() {
 
   // ✅ useCallback สำหรับ sort handlers
   const handleSort = useCallback((newSort) => {
+    setPage(1)
     setSort(newSort)
   }, [])
 
@@ -263,6 +323,7 @@ export default function ForumPage() {
               post={post}
               query={debouncedQuery}
               escapeRegExp={escapeRegExp}
+              fromPath={fromPath}
             />
           ))}
         </>

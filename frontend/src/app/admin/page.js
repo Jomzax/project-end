@@ -56,12 +56,12 @@ export default function AdminPage() {
           { label: 'ผู้ใช้', value: data.users || 0, icon: <Users size={28} /> },
           { label: 'ยอดชม', value: data.views || 0, icon: <Eye size={28} /> },
           { label: 'ไลค์', value: data.likes || 0, icon: <ThumbsUp size={28} /> },
-          { label: 'รายงานผิด', value: 0, icon: <Flag size={28} /> },
+          { label: 'รายงานผิด', value: (data.reports || 0) + (data.commentReports || 0), icon: <Flag size={28} /> },
         ])
 
         setTabs([
-          { id: 'reports', icon: <Flag size={18} />, label: 'รายงานกระทู้', count: 0 },
-          { id: 'comment-reports', icon: <MessageSquare size={18} />, label: 'รายงานความคิดเห็น', count: 0 },
+          { id: 'reports', icon: <Flag size={18} />, label: 'รายงานกระทู้', count: data.reports || 0 },
+          { id: 'comment-reports', icon: <MessageSquare size={18} />, label: 'รายงานความคิดเห็น', count: data.commentReports || 0 },
           { id: 'discussions', icon: <Notebook size={18} />, label: 'กระทู้', count: data.discussions || 0 },
           { id: 'categories', icon: <Grid3x3 size={18} />, label: 'หมวดหมู่', count: data.categories || 0 },
           { id: 'users', icon: <Users size={18} />, label: 'ผู้ใช้', count: data.users || 0 },
@@ -189,17 +189,20 @@ export default function AdminPage() {
             )}
           </div>
 
-          {/* Content Area - Shows different tab content */}
-          <div className="content-area">
-            {activeTab === 'reports' && <ReportsTab sortBy={sortBy} />}
-            {activeTab === 'comment-reports' && <CommentReportsTab sortBy={sortBy} />}
-            {activeTab === 'discussions' && <DiscussionsTab />}
-            {activeTab === 'categories' && (
-              <CategoriesTab openCreate={openCreateCategory} setOpenCreate={setOpenCreateCategory} globalSearch={globalSearch} />
-            )}
-            {activeTab === 'users' && <UsersTab globalSearch={globalSearch} />}
-            {activeTab === 'bans' && <BansTab />}
-          </div>
+          {/* Tabs with internal content-area and external pagination */}
+          {activeTab === 'discussions' ? (
+            <DiscussionsTab />
+          ) : activeTab === 'categories' ? (
+            <CategoriesTab openCreate={openCreateCategory} setOpenCreate={setOpenCreateCategory} globalSearch={globalSearch} />
+          ) : activeTab === 'users' ? (
+            <UsersTab globalSearch={globalSearch} />
+          ) : (
+            <div className="content-area">
+              {activeTab === 'reports' && <ReportsTab sortBy={sortBy} />}
+              {activeTab === 'comment-reports' && <CommentReportsTab sortBy={sortBy} />}
+              {activeTab === 'bans' && <BansTab />}
+            </div>
+          )}
         </>
       )}
     </div>

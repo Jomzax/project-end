@@ -36,7 +36,6 @@ export default function UsersTab({ globalSearch: parentSearch }) {
             const headers = {}
             if (currentUser) {
                 headers['x-user-id'] = String(currentUser.user_id)
-                if (currentUser.username) headers['x-username'] = String(currentUser.username)
                 if (currentUser.role) headers['x-role'] = String(currentUser.role)
             }
 
@@ -119,7 +118,6 @@ export default function UsersTab({ globalSearch: parentSearch }) {
                 const headers = { 'Content-Type': 'application/json' }
                 if (currentUser) {
                     headers['x-user-id'] = String(currentUser.user_id)
-                    if (currentUser.username) headers['x-username'] = String(currentUser.username)
                     if (currentUser.role) headers['x-role'] = String(currentUser.role)
                 }
                 const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/make-admin`, {
@@ -165,7 +163,6 @@ export default function UsersTab({ globalSearch: parentSearch }) {
                 const headers = { 'Content-Type': 'application/json' }
                 if (currentUser) {
                     headers['x-user-id'] = String(currentUser.user_id)
-                    if (currentUser.username) headers['x-username'] = String(currentUser.username)
                     if (currentUser.role) headers['x-role'] = String(currentUser.role)
                 }
                 const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/remove-admin`, {
@@ -207,7 +204,6 @@ export default function UsersTab({ globalSearch: parentSearch }) {
             const headers = { 'Content-Type': 'application/json' }
             if (currentUser) {
                 headers['x-user-id'] = String(currentUser.user_id)
-                if (currentUser.username) headers['x-username'] = String(currentUser.username)
                 if (currentUser.role) headers['x-role'] = String(currentUser.role)
             }
 
@@ -250,7 +246,6 @@ export default function UsersTab({ globalSearch: parentSearch }) {
                 const headers = { 'Content-Type': 'application/json' }
                 if (currentUser) {
                     headers['x-user-id'] = String(currentUser.user_id)
-                    if (currentUser.username) headers['x-username'] = String(currentUser.username)
                     if (currentUser.role) headers['x-role'] = String(currentUser.role)
                 }
 
@@ -295,7 +290,7 @@ export default function UsersTab({ globalSearch: parentSearch }) {
 
     // Search is done on the server; no client-side filter needed
     return (
-        <div className="users-tab">
+        <>
             <div className="content-area">
 
                 <div className="users-wrapper">
@@ -312,15 +307,15 @@ export default function UsersTab({ globalSearch: parentSearch }) {
                         <tbody>
                             {users.map(user => (
                                 <tr key={user.user_id || user.id} style={user.is_banned ? { borderLeft: '4px solid #d35400' } : {}}>
-                                    <td>
+                                    <td data-label="ชื่อผู้ใช้">
                                         <div className="user-cell">
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                                 <strong>{user.username}</strong>
                                             </div>
                                         </div>
                                     </td>
-                                    <td>{user.email}</td>
-                                    <td>
+                                    <td data-label="อีเมล">{user.email}</td>
+                                    <td data-label="บทบาท">
                                         <div className="role-badge">
                                             {user.is_banned ? (
                                                 <span className="badge-banned">🚫 แบน</span>
@@ -331,7 +326,7 @@ export default function UsersTab({ globalSearch: parentSearch }) {
                                             )}
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="สมัครเมื่อ">
                                         {user.created_at
                                             ? new Date(user.created_at).toLocaleDateString('th-TH', {
                                                 year: 'numeric',
@@ -341,7 +336,7 @@ export default function UsersTab({ globalSearch: parentSearch }) {
                                             : '-'
                                         }
                                     </td>
-                                    <td>
+                                    <td data-label="การจัดการ">
                                         <div className="actions-cell">
                                             {user.role !== 'admin' && (
                                                 <button
@@ -402,37 +397,37 @@ export default function UsersTab({ globalSearch: parentSearch }) {
                         </tbody>
                     </table>
                 </div>
+            </div>
 
-                {/* Pagination */}
-                <div className="admin-pagination">
-                    <nav className="pagination-wrapper">
-                        <ul className="pagination">
-                            <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
-                                <button
-                                    className="page-link"
-                                    onClick={() => setPage(prev => prev - 1)}
-                                    disabled={page === 1}
-                                >
-                                    Previous
-                                </button>
-                            </li>
+            {/* Pagination outside content-area */}
+            <div className="admin-pagination">
+                <nav className="pagination-wrapper">
+                    <ul className="pagination">
+                        <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
+                            <button
+                                className="page-link"
+                                onClick={() => setPage(prev => prev - 1)}
+                                disabled={page === 1}
+                            >
+                                Previous
+                            </button>
+                        </li>
 
-                            <li className="page-item active">
-                                <span className="page-link">{page}</span>
-                            </li>
+                        <li className="page-item active">
+                            <span className="page-link">{page}</span>
+                        </li>
 
-                            <li className={`page-item ${page >= totalPages ? "disabled" : ""}`}>
-                                <button
-                                    className="page-link"
-                                    onClick={() => setPage(prev => prev + 1)}
-                                    disabled={page >= totalPages}
-                                >
-                                    Next
-                                </button>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
+                        <li className={`page-item ${page >= totalPages ? "disabled" : ""}`}>
+                            <button
+                                className="page-link"
+                                onClick={() => setPage(prev => prev + 1)}
+                                disabled={page >= totalPages}
+                            >
+                                Next
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
             </div>
 
             {/* Confirmation Dialog Modal */}
@@ -485,6 +480,7 @@ export default function UsersTab({ globalSearch: parentSearch }) {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     )
 }
+

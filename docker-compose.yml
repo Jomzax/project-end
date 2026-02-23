@@ -56,6 +56,21 @@ services:
     ports:
       - "6379:6379"
 
+  # --------------------
+  # MinIO
+  # --------------------
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin123*
+      MINIO_ROOT_PASSWORD: admin123*
+    volumes:
+      - C:/Users/Administrator/Desktop/project-end/minio:/data
+    command: server /data --console-address ":9001"
 
 volumes:
   mysql_data:

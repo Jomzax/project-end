@@ -18,7 +18,6 @@ export default function BansTab() {
             const headers = {}
             if (currentUser) {
                 headers['x-user-id'] = String(currentUser.user_id)
-                if (currentUser.username) headers['x-username'] = String(currentUser.username)
                 if (currentUser.role) headers['x-role'] = String(currentUser.role)
             }
             const response = await fetch('http://localhost:5000/api/admin/bans', { headers })
@@ -73,9 +72,9 @@ export default function BansTab() {
                 <table className="bans-table">
                     <thead>
                         <tr>
-                            <th>การดำเนินการ</th>
-                            <th>ผู้ใช้ที่ถูกดำเนินการ</th>
-                            <th>ดำเนินการโดย</th>
+                            <th>จัดการ</th>
+                            <th>ผู้ใช้ที่ถูกแบน</th>
+                            <th>ผู้ที่ทำการแบน</th>
                             <th>เหตุผล</th>
                             <th>หมดอายุ</th>
                             <th>วันที่ถูกแบน</th>

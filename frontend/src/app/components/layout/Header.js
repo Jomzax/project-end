@@ -1,10 +1,11 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import '../styles/Header.css'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/app/lib/auth-context'
+import { getAvatarInitial, normalizeAvatarSrc, pickAvatar } from '@/app/lib/avatar'
 import {
   MessageSquare,
   Search,
@@ -20,9 +21,13 @@ export default function Header() {
   const isLoggedIn = !!user
   const isAdmin = user?.role === 'admin'
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const currentQuery = searchParams.get('q') || ''
   const [searchTerm, setSearchTerm] = useState(currentQuery)
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false)
+  const avatarSrc = normalizeAvatarSrc(pickAvatar(user))
+  const avatarInitial = getAvatarInitial(user?.username || user?.email || '')
 
   const handleLogout = () => {
     logout()
@@ -33,20 +38,28 @@ export default function Header() {
     setSearchTerm(currentQuery)
   }, [currentQuery])
 
+  useEffect(() => {
+    setAvatarLoadFailed(false)
+  }, [avatarSrc])
+
   // debounce update URL
   useEffect(() => {
     const timeout = setTimeout(() => {
       const trimmed = searchTerm.trim()
+      const target = trimmed
+        ? `${pathname}?q=${encodeURIComponent(trimmed)}`
+        : pathname
+      const current = currentQuery
+        ? `${pathname}?q=${encodeURIComponent(currentQuery)}`
+        : pathname
 
-      if (!trimmed) {
-        router.replace('/forum') // ลบ ?q=
-      } else {
-        router.replace(`/forum?q=${encodeURIComponent(trimmed)}`)
+      if (target !== current) {
+        router.replace(target)
       }
     }, 400)
 
     return () => clearTimeout(timeout)
-  }, [searchTerm])
+  }, [searchTerm, pathname, currentQuery, router])
 
   return (
     <>
@@ -146,9 +159,16 @@ export default function Header() {
                     className="rounded-circle d-flex align-items-center justify-content-center avatar-btn"
                     title="บัญชีของฉัน"
                   >
-                    <span className="fw-bold text-dark fs-6">
-                      {user?.username?.charAt(0)?.toUpperCase()}
-                    </span>
+                    {avatarSrc && !avatarLoadFailed ? (
+                      <img
+                        src={avatarSrc}
+                        alt="avatar"
+                        className="avatar-btn-image"
+                        onError={() => setAvatarLoadFailed(true)}
+                      />
+                    ) : (
+                      <span className="fw-bold text-dark fs-6">{avatarInitial}</span>
+                    )}
                   </Link>
 
                   {/* Logout*/}

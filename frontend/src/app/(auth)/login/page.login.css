@@ -58,7 +58,21 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 8px 10px;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
+}
+
+.login-page .inputGroup:focus-within {
+  border-color: #1e88ff;
+  box-shadow: 0 0 0 2px rgba(30, 136, 255, 0.15);
+}
+
+.login-page .inputGroup.invalid {
+  border-color: #ef4444;
+}
+
+.login-page .inputGroup.invalid:focus-within {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
 }
 
 .login-page .inputGroup span {
@@ -75,6 +89,18 @@
   background: none;
   border: none;
   cursor: pointer;
+  color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.login-page .errorText {
+  margin: 0 0 10px;
+  color: #dc2626;
+  font-size: 12px;
 }
 
 .login-page .remember {
@@ -83,6 +109,10 @@
   gap: 6px;
   font-size: 14px;
   margin-bottom: 16px;
+}
+
+.login-page .remember label {
+  margin: 0;
 }
 
 .login-page .loginBtn {
@@ -94,6 +124,12 @@
   border-radius: 8px;
   font-size: 16px;
   cursor: pointer;
+  margin-top: 10px;
+}
+
+.login-page .loginBtn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
 }
 
 .login-page .loginBtn:hover {

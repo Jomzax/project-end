@@ -11,7 +11,9 @@ export const getForumStats = async (req, res) => {
         (SELECT IFNULL(SUM(like_count),0) FROM discussions) AS likes,
         (SELECT IFNULL(SUM(view_count),0) FROM discussions) AS views,
         (SELECT COUNT(*) FROM categories) AS categories,
-        (SELECT COUNT(*) FROM user_bans) AS bans
+        (SELECT COUNT(*) FROM user_bans) AS bans,
+        (SELECT COUNT(*) FROM report_post) AS reports,
+        (SELECT COUNT(*) FROM report_comment) AS commentReports
     `);
 
     res.json({
@@ -22,7 +24,10 @@ export const getForumStats = async (req, res) => {
       likes: Number(stats.likes),
       views: Number(stats.views),
       categories: Number(stats.categories),
-      bans: Number(stats.bans)
+      bans: Number(stats.bans),
+      reports: Number(stats.reports),
+      commentReports: Number(stats.commentReports),
+
     });
 
   } catch (err) {

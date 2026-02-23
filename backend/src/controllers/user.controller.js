@@ -1,4 +1,5 @@
 import pool from "../db/mysql.js";
+import { hashPassword } from "../utils/password.js";
 
 export const getAllUsers = async (req, res) => {
     try {
@@ -28,7 +29,7 @@ export const getAllUsers = async (req, res) => {
 
     } catch (err) {
         console.error("Get users error:", err)
-        res.status(500).json({ message: "Server error" })
+        res.status(500).json({ message: "เกิดข้อผิดพลาดในระบบ" })
     }
 }
 
@@ -94,7 +95,7 @@ export const getAdminUsers = async (req, res) => {
 
     } catch (err) {
         console.error("Get admin users error:", err)
-        res.status(500).json({ message: "Server error" })
+        res.status(500).json({ message: "เกิดข้อผิดพลาดในระบบ" })
     }
 }
 
@@ -119,14 +120,14 @@ export const makeUserAdmin = async (req, res) => {
         }
 
         if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "User not found" })
+            return res.status(404).json({ message: "ไม่พบผู้ใช้" })
         }
 
-        res.json({ message: "User promoted to admin" })
+        res.json({ message: "แต่งตั้งเป็นแอดมินเรียบร้อย" })
 
     } catch (err) {
         console.error("Make admin error:", err)
-        res.status(500).json({ message: "Server error" })
+        res.status(500).json({ message: "เกิดข้อผิดพลาดในระบบ" })
     }
 }
 
@@ -150,14 +151,138 @@ export const removeAdminStatus = async (req, res) => {
         }
 
         if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "User not found" })
+            return res.status(404).json({ message: "ไม่พบผู้ใช้" })
         }
 
-        res.json({ message: "Admin status removed" })
+        res.json({ message: "ยกเลิกสิทธิ์แอดมินเรียบร้อย" })
 
     } catch (err) {
         console.error("Remove admin error:", err)
-        res.status(500).json({ message: "Server error" })
+        res.status(500).json({ message: "เกิดข้อผิดพลาดในระบบ" })
+    }
+}
+
+export const getMyProfile = async (req, res) => {
+    try {
+        const userId = req.user?.user_id
+        if (!userId) {
+            return res.status(401).json({ error: "ไม่มีสิทธิ์เข้าถึง" })
+        }
+
+        const [rows] = await pool.query(`
+            SELECT user_id, username, email, role, created_at
+            FROM users
+            WHERE user_id = ?
+            LIMIT 1
+        `, [userId])
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: "ไม่พบผู้ใช้" })
+        }
+
+        res.json({ user: rows[0] })
+    } catch (err) {
+        console.error("Get my profile error:", err)
+        res.status(500).json({ error: "เกิดข้อผิดพลาดในระบบ" })
+    }
+}
+
+export const checkMyUsernameAvailability = async (req, res) => {
+    try {
+        const userId = req.user?.user_id
+        if (!userId) {
+            return res.status(401).json({ error: "ไม่มีสิทธิ์เข้าถึง" })
+        }
+
+        const usernameRaw = req.query?.username
+        const username = typeof usernameRaw === "string" ? usernameRaw.trim() : ""
+        if (!username) {
+            return res.status(400).json({ error: "กรุณาระบุชื่อผู้ใช้" })
+        }
+
+        const [rows] = await pool.query(
+            `
+            SELECT user_id
+            FROM users
+            WHERE LOWER(username) = LOWER(?)
+              AND user_id <> ?
+            LIMIT 1
+            `,
+            [username, userId]
+        )
+
+        res.json({ available: rows.length === 0 })
+    } catch (err) {
+        console.error("Check username availability error:", err)
+        res.status(500).json({ error: "เกิดข้อผิดพลาดในระบบ" })
+    }
+}
+
+export const updateMyProfile = async (req, res) => {
+    try {
+        const userId = req.user?.user_id
+        if (!userId) {
+            return res.status(401).json({ error: "ไม่มีสิทธิ์เข้าถึง" })
+        }
+
+        const usernameRaw = req.body?.username
+        const newPassword = req.body?.newPassword || ""
+        const confirmPassword = req.body?.confirmPassword || ""
+        const username = typeof usernameRaw === "string" ? usernameRaw.trim() : ""
+
+        if (!username) {
+            return res.status(400).json({ error: "กรุณากรอกชื่อผู้ใช้" })
+        }
+
+        let passwordHash = null
+        if (newPassword || confirmPassword) {
+            if (!newPassword || !confirmPassword) {
+                return res.status(400).json({ error: "กรุณากรอกรหัสผ่านใหม่และยืนยันรหัสผ่านให้ครบ" })
+            }
+            if (newPassword !== confirmPassword) {
+                return res.status(400).json({ error: "รหัสผ่านใหม่และยืนยันรหัสผ่านไม่ตรงกัน" })
+            }
+            if (newPassword.length < 6) {
+                return res.status(400).json({ error: "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร" })
+            }
+            passwordHash = await hashPassword(newPassword)
+        }
+
+        if (passwordHash) {
+            await pool.query(`
+                UPDATE users
+                SET username = ?, password = ?
+                WHERE user_id = ?
+            `, [username, passwordHash, userId])
+        } else {
+            await pool.query(`
+                UPDATE users
+                SET username = ?
+                WHERE user_id = ?
+            `, [username, userId])
+        }
+
+        const [rows] = await pool.query(`
+            SELECT user_id, username, email, role, created_at
+            FROM users
+            WHERE user_id = ?
+            LIMIT 1
+        `, [userId])
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: "ไม่พบผู้ใช้" })
+        }
+
+        res.json({
+            message: "อัปเดตโปรไฟล์สำเร็จ",
+            user: rows[0]
+        })
+    } catch (err) {
+        if (err?.code === "ER_DUP_ENTRY" || String(err?.message || "").includes("Duplicate entry")) {
+            return res.status(409).json({ error: "ชื่อผู้ใช้นี้ถูกใช้งานแล้ว" })
+        }
+        console.error("Update my profile error:", err)
+        res.status(500).json({ error: "เกิดข้อผิดพลาดในระบบ" })
     }
 }
 

@@ -3,7 +3,7 @@ import './globals.css'
 
 
 import BootstrapClient from './bootstrap-client'
-import { Inter } from 'next/font/google'
+import { Sarabun } from 'next/font/google'
 
 
 import { AuthProvider } from '@/app/lib/auth-context'
@@ -11,7 +11,11 @@ import { AlertProvider } from '@/app/lib/alert-context'
 import Header from '@/app/components/layout/Header'
 import Alert from '@/app/components/Alert'
 
-const inter = Inter({ subsets: ['latin'] })
+const sarabun = Sarabun({
+  subsets: ['thai', 'latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+})
 
 export const metadata = {
   title: 'Pro',
@@ -21,7 +25,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={inter.className}
+      <body className={sarabun.className}
         suppressHydrationWarning
       >
         <BootstrapClient />

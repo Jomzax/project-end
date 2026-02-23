@@ -14,7 +14,7 @@ export default function Alert() {
             'error': '#ef4444',
             'warning': '#f59e0b',
             'info': '#3b82f6',
-            'confirm': '#f59e0b'
+            'confirm': '#f50b0b'
         }
         return colors[type] || colors['info']
     }

@@ -1,153 +1,238 @@
-/* =========================
-   พื้นหลังทั้งหน้า
-========================= */
 .register-page {
   min-height: 100vh;
   background: #f5f7fb;
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 14px;
 }
 
-/* =========================
-   container
-========================= */
 .register-page .container {
   width: 100%;
   max-width: 420px;
-  padding: 12px;
 }
 
-/* =========================
-   Card
-========================= */
-.register-page .card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 24px 20px; /* ⬅️ ลดจาก 32px */
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+.register-page .registerHeader {
   text-align: center;
+  margin-bottom: 14px;
 }
 
-/* =========================
-   icon
-========================= */
-.register-page .icon {
-  width: 48px;          /* ⬅️ เล็กลงนิด */
-  height: 48px;
-  margin: 0 auto 8px;   /* ⬅️ ชิดขึ้น */
-  border-radius: 50%;
+.register-page .registerHeaderIcon {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
   background: #1677ff;
   color: #fff;
-  display: flex;
+  margin: 0 auto 10px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
 }
 
-/* =========================
-   title / subtitle
-========================= */
-.register-page .title {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 6px 0 4px; /* ⬅️ ชิดขึ้น */
-  display: flex;
-  align-items: center;
-  justify-content: center;    
+.register-page .registerTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 800;
+  color: #111827;
 }
 
-.register-page .subtitle {
+.register-page .registerSubtitle {
+  margin: 6px 0 0;
   font-size: 14px;
-  color: #6c757d;
-  margin-bottom: 16px;  /* ⬅️ ลดจาก 24 */
-  display: flex;
-  align-items: center;
-  justify-content: center;   
+  line-height: 1.2;
+  color: #4b5563;
 }
 
-/* =========================
-   form
-========================= */
+.register-page .card {
+  background: #ffffff;
+  border: 1px solid #dfe4ea;
+  border-radius: 8px;
+  padding: 18px 18px 20px;
+}
+
 .register-page .form {
   text-align: left;
 }
 
-/* label */
 .register-page label {
-  font-size: 16px;      /* ⬅️ ลดนิด */
+  font-size: 14px;
   font-weight: 500;
-  margin-bottom: 4px;   /* ⬅️ ชิดขึ้น */
+  margin-bottom: 8px;
   display: block;
-  color: #212529;
+  color: #111827;
 }
 
-/* =========================
-   input group
-========================= */
 .register-page .inputGroup {
   display: flex;
   align-items: center;
-  height: 40px;         /* ⬅️ เตี้ยลงนิด */
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
+  height: 42px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
   padding: 0 10px;
-  margin-bottom: 12px;  /* ⬅️ ลดจาก 16 */
+  margin-bottom: 8px;
   background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* icon ซ้าย */
+.register-page .inputGroup:focus-within {
+  border-color: #1677ff;
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.15);
+}
+
+.register-page .inputGroup.invalid {
+  border-color: #ef4444;
+}
+
+.register-page .inputGroup.invalid:focus-within {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
 .register-page .inputGroup span {
-  font-size: 15px;
-  color: #6c757d;
-  margin-right: 6px;    /* ⬅️ ชิดขึ้น */
+  color: #6b7280;
+  margin-right: 8px;
+  display: inline-flex;
 }
 
-/* input */
 .register-page .inputGroup input {
   border: none;
   outline: none;
   flex: 1;
   height: 100%;
   font-size: 14px;
+  color: #111827;
 }
 
-/* eye button */
 .register-page .eye {
   border: none;
   background: none;
   cursor: pointer;
-  font-size: 15px;
-  color: #6c757d;
+  color: #6b7280;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* =========================
-   ปุ่มสมัคร
-========================= */
+.register-page .errorText {
+  margin: 0 0 10px;
+  color: #dc2626;
+  font-size: 12px;
+}
+
+.register-page .passwordStrengthWrap {
+  margin: 4px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.register-page .passwordMeterTrack {
+  flex: 1;
+  height: 8px;
+  background: #eceff4;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.register-page .passwordMeterFill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #22c55e 100%);
+  transition: width 0.2s ease;
+}
+
+.register-page .passwordMeterText {
+  color: #dc2626;
+  font-size: 12px;
+}
+
+.register-page .passwordRules {
+  margin: 6px 0 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+}
+
+.register-page .passwordRule {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.register-page .passwordRule svg {
+  color: #9ca3af;
+}
+
+.register-page .passwordRule.valid {
+  color: #047857;
+}
+
+.register-page .passwordRule.valid svg {
+  color: #22c55e;
+}
+
+.register-page .policyRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 4px 0 8px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.register-page .policyRow input {
+  margin-top: 2px;
+}
+
+.register-page .policyRow span {
+  line-height: 1.4;
+}
+
+.register-page .policyLink {
+  color: #1677ff;
+  text-decoration: none;
+}
+
+.register-page .policyLink:hover {
+  text-decoration: underline;
+}
+
+.register-page .policyError {
+  margin-top: -2px;
+}
+
 .register-page .registerBtn {
   width: 100%;
   height: 42px;
   background: #1677ff;
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 4px;     /* ⬅️ ชิดขึ้น */
+  margin-top: 2px;
 }
 
-.register-page .registerBtn:hover {
+.register-page .registerBtn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.register-page .registerBtn:hover:not(:disabled) {
   background: #0958d9;
 }
 
-/* =========================
-   divider
-========================= */
 .register-page .divider {
-  margin: 16px 0 12px; /* ⬅️ ลดระยะ */
+  margin: 16px 0 12px;
   font-size: 12px;
-  color: #adb5bd;
+  color: #9ca3af;
   position: relative;
   text-align: center;
 }
@@ -159,7 +244,7 @@
   top: 50%;
   width: 38%;
   height: 1px;
-  background: #dee2e6;
+  background: #e5e7eb;
 }
 
 .register-page .divider::before {
@@ -170,35 +255,28 @@
   right: 0;
 }
 
-/* =========================
-   login link
-========================= */
 .register-page .login {
   text-align: center;
-  font-size: 16px;
-}
-
-.register-page .login span {
-  margin: 0 4px;
+  font-size: 14px;
+  color: #4b5563;
 }
 
 .register-page .login-link {
-  font-size: 16px;
   color: #1677ff;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .register-page .login-link:hover {
   text-decoration: underline;
 }
 
-/* =========================
-   footer
-========================= */
-.register-page .footer {
-  margin-top: 16px;
-  text-align: center;
-  font-size: 11px;
-  color: #adb5bd;
+@media (max-width: 600px) {
+  .register-page .registerTitle {
+    font-size: 22px;
+  }
+
+  .register-page .registerSubtitle {
+    font-size: 14px;
+  }
 }

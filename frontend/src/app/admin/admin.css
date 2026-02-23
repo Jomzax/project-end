@@ -319,6 +319,79 @@
     border-bottom: none;
 }
 
+.discussion-title-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.discussion-title {
+    font-weight: 600;
+    color: #111827;
+}
+
+.discussion-time {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.discussion-num {
+    color: #374151;
+}
+
+.discussion-status {
+    width: 22px;
+    height: 22px;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    background: #f3f4f6;
+}
+
+.discussion-status-list {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.discussion-status.pinned {
+    color: #d97706;
+    background: #fef3c7;
+}
+
+.discussion-status.hot {
+    color: #ea580c;
+    background: #ffedd5;
+}
+
+.discussion-pin-btn {
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #374151;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.discussion-pin-btn:hover {
+    background: #f3f4f6;
+}
+
+.discussion-pin-btn.active {
+    color: #dc2626;
+}
+
+.discussion-pin-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 /* ACTION BUTTONS */
 .actions {
     display: flex;
@@ -525,4 +598,144 @@ code {
     display: flex;
     gap: 12px;
     padding: 0;        /* สำคัญ */
+}
+
+/* Discussions tab refinements */
+.discussion-manager {
+    padding: 0;
+}
+
+.discussion-table-wrap {
+    border: 0;
+    border-radius: 0;
+    overflow-x: auto;
+    box-shadow: none;
+}
+
+.discussion-title {
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.4;
+}
+
+.discussion-metric-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.discussion-pin-btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    color: #4b5563;
+    transition: all 0.2s ease;
+}
+
+.discussion-pin-btn:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.discussion-pin-btn.active {
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: #be123c;
+}
+
+.admin-pagination {
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+    padding: 10px 14px;
+    border: 1px solid #d7dce4;
+    border-radius: 16px;
+    background: #eef0f3;
+}
+
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+.pagination {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.page-item {
+    display: flex;
+}
+
+.page-link {
+    border: 1px solid #cfd5df;
+    border-radius: 10px;
+    background: #fff;
+    color: #1f2937;
+    min-width: 98px;
+    height: 40px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+    transition: all 0.2s ease;
+}
+
+.page-item:last-child .page-link {
+    border-right: 1px solid #cfd5df;
+}
+
+.page-item:not(.disabled) .page-link:hover {
+    background: #f8fafc;
+    border-color: #bac3d1;
+}
+
+.page-item.active .page-link {
+    min-width: 40px;
+    width: 40px;
+    padding: 0;
+    border-color: #2f66e8;
+    color: #ffffff;
+    background: #2f66e8;
+    box-shadow: 0 6px 14px rgba(47, 102, 232, 0.35);
+}
+
+.page-item.disabled .page-link {
+    color: #c8cfd8;
+    border-color: #dee3ea;
+    background: #edf1f5;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+@media (max-width: 768px) {
+    .discussion-manager {
+        padding: 14px;
+    }
+
+    .admin-pagination {
+        justify-content: center;
+    }
 }

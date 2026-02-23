@@ -159,7 +159,7 @@
 }
 
 .alert-warning {
-    border-top-color: #f59e0b;
+    border-top-color: #f50b0b;
 }
 
 .alert-warning .alert-header {
@@ -175,7 +175,7 @@
 }
 
 .alert-confirm {
-    border-top-color: #8b5cf6;
+    border-top-color: #eec600;
 }
 
 .alert-confirm .alert-header {

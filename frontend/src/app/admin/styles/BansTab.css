@@ -25,7 +25,7 @@
     text-align: left;
     font-size: 13px;
     font-weight: 600;
-    color: #374151;
+    color: #000000;
 }
 
 .bans-table tbody tr {
@@ -39,8 +39,9 @@
 
 .bans-table td {
     padding: 14px 16px;
-    font-size: 14px;
-    color: #1f2937;
+    font-weight: 500;
+    font-size: 18px;
+    color: #000000;
 }
 
 .bans-tab .actions {

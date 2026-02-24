@@ -12,17 +12,25 @@
 
 .vscode/
 
+
+
 # testing
 testing/
 
 # logs
 *.log
 
+# minio runtime data
+minio/.minio.sys/
+
+# user uploaded files
+minio/projectend4/avatars/
+
 # personal
 note.txt
 dsa.txt
 
-!dockeker-compose.yml
+!docker-compose.yml
 
 
 

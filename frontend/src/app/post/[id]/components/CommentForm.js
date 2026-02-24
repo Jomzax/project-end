@@ -1,9 +1,11 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useAlert } from '@/app/lib/alert-context'
 import { getAvatarInitial, normalizeAvatarSrc, pickAvatar } from '@/app/lib/avatar'
+import { LogIn } from 'lucide-react'
 
 export default function CommentForm({ onSuccess, currentUser }) {
   const { id } = useParams()
@@ -62,6 +64,26 @@ export default function CommentForm({ onSuccess, currentUser }) {
     }
 
     setLoading(false)
+  }
+
+  if (!currentUser || !currentUser.user_id) {
+    return (
+      <div className="card shadow-sm mb-4">
+        <div className="card-body">
+          <div className="comment-login-cta">
+            <div className="comment-login-icon">
+              <LogIn size={22} />
+            </div>
+            <h6 className="comment-login-title">เข้าร่วมการสนทนา</h6>
+            <p className="comment-login-subtitle">เข้าสู่ระบบเพื่อแสดงความคิดเห็น ไลก์ และตอบกลับกระทู้</p>
+            <div className="comment-login-actions">
+              <Link href="/login" className="comment-login-primary">เข้าสู่ระบบ</Link>
+              <Link href="/register" className="comment-login-secondary">สมัครสมาชิก</Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

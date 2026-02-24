@@ -8,7 +8,7 @@ import { getAvatarInitial, normalizeAvatarSrc, pickAvatar } from '@/app/lib/avat
 import useDebounce from '@/app/hooks/useDebounce'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useState, useMemo, useRef, useCallback, memo } from 'react'
-import { MessageCircle, ThumbsUp, Eye, Calendar, ChevronRight, User, Shield, ArrowUpDown, Pin, Flame } from 'lucide-react'
+import { MessageCircle, ThumbsUp, Eye, Calendar, ChevronRight, User, Shield, ArrowUpDown, Pin, Flame, LogIn } from 'lucide-react'
 
 /* ================= POST CARD COMPONENT (MEMOIZED) ================= */
 const PostCard = memo(({ post, query, escapeRegExp, fromPath }) => {
@@ -265,6 +265,18 @@ export default function ForumPage() {
           </div>
         </div>
       </div>
+
+      {!user && (
+        <div className="sort-guest-banner mb-2">
+          <div className="sort-guest-icon">
+            <User size={14} />
+          </div>
+          <div className="sort-guest-content">
+            <p className="sort-guest-title">คุณกำลังเรียกดูในโหมดผู้เยี่ยมชม</p>
+            <p className="sort-guest-subtitle">เข้าสู่ระบบเพื่อสร้างกระทู้ ไลก์ และแสดงความคิดเห็น</p>
+          </div>
+        </div>
+      )}
 
       {/* ===== SORT BAR ===== */}
       <div className="sort-bar mb-3 d-flex align-items-center gap-3">

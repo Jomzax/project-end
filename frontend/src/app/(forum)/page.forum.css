@@ -1,4 +1,4 @@
-/* ================= LAYOUT ================= */
+﻿/* ================= LAYOUT ================= */
 
 .forum-main-content {
   max-width: 1100px;
@@ -271,9 +271,9 @@
 
 .search-highlight {
   background-color: #ffe58f;
-  padding: 0;                 /* ห้ามมี padding */
-  border-radius: 0;           /* ไม่ต้องโค้ง */
-  display: inline;            /* กัน layout shift */
+  padding: 0;                 /* เธซเนเธฒเธกเธกเธต padding */
+  border-radius: 0;           /* เนเธกเนเธ•เนเธญเธเนเธเนเธ */
+  display: inline;            /* เธเธฑเธ layout shift */
 }
 
 /* ================= SORT BUTTON ================= */
@@ -299,15 +299,97 @@
   color: #fff;
 }
 
+.sort-guest-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px;
+  border: 1px solid #f5cc8f;
+  background: #fff6e8;
+  border-radius: 14px;
+}
+
+.sort-guest-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #ffe2b6;
+  color: #a55b00;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sort-guest-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.sort-guest-title,
+.sort-guest-subtitle {
+  margin: 0;
+  line-height: 1.25;
+}
+
+.sort-guest-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #211f1c;
+  margin-bottom: 6px;
+}
+
+.sort-guest-subtitle {
+  font-size: 14px;
+  color: #3a3836;
+}
+
+.sort-guest-login-btn {
+  border: none;
+  background: #f59e0b;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.sort-guest-login-btn:hover {
+  background: #d97706;
+  color: #fff;
+}
+
+@media (max-width: 767px) {
+  .sort-guest-banner {
+    padding: 16px;
+    gap: 8px;
+  }
+
+  .sort-guest-title {
+    font-size: 14px;
+  }
+
+  .sort-guest-subtitle {
+    font-size: 12px;
+  }
+
+  .sort-guest-login-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
 @media (min-width: 992px) {
 
-  /* เอา mx-auto ออกเฉพาะหน้า forum */
-  body:has(.forum-main-content) .search-wrapper {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-
-    /* ขยับไปเท่ากับ sidebar col-lg-3 */
-    transform: translateX(calc((100% - 680px)/2 + 275px));
+  /* เน€เธญเธฒ mx-auto เธญเธญเธเน€เธเธเธฒเธฐเธซเธเนเธฒ forum */
+  .search-wrapper {
+    transform: none;
   }
 
 }
+

@@ -6,7 +6,7 @@ import { useAuth } from '@/app/lib/auth-context'
 import { getAvatarInitial, normalizeAvatarSrc, pickAvatar } from '@/app/lib/avatar'
 import { usePathname, useParams } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
-import { MessageCircle, ThumbsUp, Eye, Calendar, ChevronRight, User, Shield, ArrowUpDown, Pin, Flame } from 'lucide-react'
+import { MessageCircle, ThumbsUp, Eye, Calendar, ChevronRight, User, Shield, ArrowUpDown, Pin, Flame, LogIn } from 'lucide-react'
 
 function PostAvatar({ post }) {
   const avatarSrc = normalizeAvatarSrc(pickAvatar(post))
@@ -98,6 +98,19 @@ export default function CategoryPage() {
       <div className="welcome-box mb-4">
         <h5>หมวดหมู่: {categoryName}</h5>
       </div>
+
+      {!user && (
+        <div className="sort-guest-banner mb-2">
+          <div className="sort-guest-icon">
+            <User size={14} />
+          </div>
+          <div className="sort-guest-content">
+            <p className="sort-guest-title">คุณกำลังอยู่ในโหมดผู้เยี่ยมชม</p>
+            <p className="sort-guest-subtitle">เข้าสู่ระบบเพื่อสร้างกระทู้ ไลค์ และแสดงความคิดเห็น</p>
+          </div>
+
+        </div>
+      )}
 
       {/* ===== SORT BAR ===== */}
       <div className="sort-bar mb-3 d-flex align-items-center gap-3">

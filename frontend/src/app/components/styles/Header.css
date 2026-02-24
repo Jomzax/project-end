@@ -9,6 +9,14 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
+.header-inner {
+  gap: 12px;
+}
+
+.header-inner > * {
+  min-width: 0;
+}
+
 /* ================= LOGO ================= */
 .logo-link {
   text-decoration: none;
@@ -31,7 +39,8 @@
 /* ================= SEARCH ================= */
 /* Base (Mobile First) */
 .search-wrapper {
-  flex: 1;
+  flex: 1 1 420px;
+  min-width: 180px;
   width: 100%;
   max-width: 100%;
 }
@@ -39,14 +48,14 @@
 /* ≥576px */
 @media (min-width: 576px) {
   .search-wrapper {
-    max-width: 420px;
+    max-width: 480px;
   }
 }
 
 /* ≥992px (Desktop) */
 @media (min-width: 992px) {
   .search-wrapper {
-    max-width: 555px;
+    max-width: min(555px, 48vw);
     margin: 0 auto;
   }
 }
@@ -118,15 +127,33 @@
 
 /* Desktop only */
 @media (min-width: 992px) {
-
-  /* ทำให้ header กว้างเท่ากับ container */
   .forum-header .header-inner {
-    max-width: 6000px;
+    display: grid !important;
+    grid-template-columns: minmax(220px, 25%) minmax(320px, 560px) minmax(260px, 1fr);
+    align-items: center;
+    column-gap: 6px;
+    max-width: 100%;
     margin: 0 auto;
   }
 
-  /* ขยับ search ให้เริ่มตรง col-lg-9 */
+  .forum-header .header-left {
+    grid-column: 1;
+    min-width: 0;
+  }
+
   .forum-header .search-wrapper {
-    margin-left: 25%;
+    grid-column: 2;
+    width: 100%;
+    max-width: 560px;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    justify-self: start;
+  }
+
+  .forum-header .header-right {
+    grid-column: 3;
+    justify-self: end;
+    min-width: 0;
+    margin-left: 0 !important;
   }
 }

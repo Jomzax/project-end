@@ -12,7 +12,7 @@ services:
       #รหัสผ่าน root ของ MySQL
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE} # ชื่อฐานข้อมูล
-      MYSQL_USER: ${MYSQL_USER}         # ชื่อผู้ใช้ฐานข้อมูล
+      MYSQL_USER: ${MYSQL_USER} # ชื่อผู้ใช้ฐานข้อมูล
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
@@ -29,7 +29,7 @@ services:
     environment:
       PMA_HOST: mysql
       # ลบส่วนนีถ้าล็อคอินฐานข้อมูล
-      PMA_USER: root 
+      PMA_USER: root
       PMA_PASSWORD: root
     depends_on:
       - mysql
@@ -66,12 +66,38 @@ services:
       - "9000:9000"
       - "9001:9001"
     environment:
-      MINIO_ROOT_USER: admin123*
-      MINIO_ROOT_PASSWORD: admin123*
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - C:/Users/Administrator/Desktop/project-end/minio:/data
     command: server /data --console-address ":9001"
 
+  # --------------------
+  # InfluxDB (เก็บ metric จาก k6)
+  # --------------------
+  influxdb:
+    image: influxdb:2.7
+    container_name: webboard-influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+
+  # --------------------
+  # Grafana
+  # --------------------
+  grafana:
+    image: grafana/grafana
+    container_name: webboard-grafana
+    ports:
+      - "3100:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    depends_on:
+      - influxdb
+
 volumes:
   mysql_data:
   mongo_data:
+  influxdb_data:

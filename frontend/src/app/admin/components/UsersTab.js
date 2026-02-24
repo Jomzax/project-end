@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, memo, useCallback } from 'react'
 import { Users, Edit2, Shield, ShieldOff, Ban, CheckCircle2 } from 'lucide-react'
@@ -15,12 +15,6 @@ export default function UsersTab({ globalSearch: parentSearch }) {
     const [totalPages, setTotalPages] = useState(1)
     const [editingUser, setEditingUser] = useState(null)
     const [saving, setSaving] = useState(false)
-    const [confirmDialog, setConfirmDialog] = useState({
-        isOpen: false,
-        message: '',
-        onConfirm: null,
-        onCancel: null
-    })
     const [banModal, setBanModal] = useState({ isOpen: false, userId: null, username: '', reason: '', expires_at: '' })
     const { user: currentUser } = useAuth()
     const { showAlert } = useAlert()
@@ -100,19 +94,9 @@ export default function UsersTab({ globalSearch: parentSearch }) {
         setPage(1)
     }, [debouncedSearch])
 
-    // Show confirmation dialog
-    const showConfirmDialog = (message, onConfirm) => {
-        setConfirmDialog({
-            isOpen: true,
-            message,
-            onConfirm,
-            onCancel: () => setConfirmDialog(prev => ({ ...prev, isOpen: false }))
-        })
-    }
-
     // Handle make admin
     const handleMakeAdmin = useCallback(async (userId) => {
-        showConfirmDialog('คุณแน่ใจหรือว่าต้องการให้ user นี้เป็น Admin?', async () => {
+        showAlert('คุณแน่ใจหรือว่าต้องการให้ user นี้เป็น Admin?', 'confirm', 'ยืนยัน', async () => {
             try {
                 setSaving(true)
                 const headers = { 'Content-Type': 'application/json' }
@@ -157,7 +141,7 @@ export default function UsersTab({ globalSearch: parentSearch }) {
             return
         }
 
-        showConfirmDialog('คุณแน่ใจหรือว่าต้องการยกเลิกสิทธิ Admin ของ user นี้?', async () => {
+        showAlert('คุณแน่ใจหรือว่าต้องการยกเลิกสิทธิ Admin ของ user นี้?', 'confirm', 'ยืนยัน', async () => {
             try {
                 setSaving(true)
                 const headers = { 'Content-Type': 'application/json' }
@@ -240,7 +224,7 @@ export default function UsersTab({ globalSearch: parentSearch }) {
 
     // Handle unban: directly delete the ban
     const handleUnban = useCallback(async (userId, username) => {
-        showConfirmDialog(`คุณแน่ใจหรือว่าต้องการยกเลิกการแบน ${username}?`, async () => {
+        showAlert(`คุณแน่ใจหรือว่าต้องการยกเลิกการแบน ${username}?`, 'confirm', 'ยืนยัน', async () => {
             try {
                 setSaving(true)
                 const headers = { 'Content-Type': 'application/json' }
@@ -318,11 +302,11 @@ export default function UsersTab({ globalSearch: parentSearch }) {
                                     <td data-label="บทบาท">
                                         <div className="role-badge">
                                             {user.is_banned ? (
-                                                <span className="badge-banned">🚫 แบน</span>
+                                                <span className="badge-banned">แบน</span>
                                             ) : user.role === 'admin' ? (
-                                                <span className="badge-admin">👨‍💼 Admin</span>
+                                                <span className="badge-admin">Admin</span>
                                             ) : (
-                                                <span className="badge-user">👤 User</span>
+                                                <span className="badge-user">User</span>
                                             )}
                                         </div>
                                     </td>
@@ -430,37 +414,6 @@ export default function UsersTab({ globalSearch: parentSearch }) {
                 </nav>
             </div>
 
-            {/* Confirmation Dialog Modal */}
-            {confirmDialog.isOpen && (
-                <div className="confirm-overlay">
-                    <div className="confirm-modal">
-                        <div className="confirm-header">
-                            <h3>ยืนยัน</h3>
-                        </div>
-                        <div className="confirm-body">
-                            <p>{confirmDialog.message}</p>
-                        </div>
-                        <div className="confirm-footer">
-                            <button
-                                className="confirm-btn confirm-btn-cancel"
-                                onClick={confirmDialog.onCancel}
-                            >
-                                ยกเลิก
-                            </button>
-                            <button
-                                className="confirm-btn confirm-btn-confirm"
-                                onClick={() => {
-                                    confirmDialog.onConfirm()
-                                    confirmDialog.onCancel()
-                                }}
-                            >
-                                ยืนยัน
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             {/* Ban Modal */}
             {banModal.isOpen && (
                 <div className="ban-overlay">
@@ -483,4 +436,5 @@ export default function UsersTab({ globalSearch: parentSearch }) {
         </>
     )
 }
+
 

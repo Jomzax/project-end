@@ -68,7 +68,7 @@ export default function Header() {
         <div className="header-inner d-flex align-items-center px-2 px-md-4">
 
           {/* ===== LEFT ===== */}
-          <div className="d-flex align-items-center gap-2 gap-md-3 me-2 me-md-3">
+          <div className="header-left d-flex align-items-center gap-2 gap-md-3 me-2 me-md-3">
             {/* Mobile Sidebar Toggle */}
             <button
               type="button"
@@ -106,7 +106,7 @@ export default function Header() {
 
 
           {/* ===== RIGHT ===== */}
-          <div className="d-flex align-items-center gap-1 gap-sm-2 gap-lg-3 ms-auto">
+          <div className="header-right d-flex align-items-center gap-1 gap-sm-2 gap-lg-3 ms-auto">
 
             {/* Mobile Search Icon */}
             <button

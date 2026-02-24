@@ -9,8 +9,11 @@
 **/.next/
 **/dist/
 **/build/
-**/.vscode/
 
+.vscode/
+
+# testing
+testing/
 
 # logs
 *.log
@@ -18,3 +21,8 @@
 # personal
 note.txt
 dsa.txt
+
+!dockeker-compose.yml
+
+
+

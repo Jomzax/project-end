@@ -181,6 +181,13 @@ export const deleteComment = async (req, res) => {
       [toDelete.length, did]
     )
 
+    if (toDelete.length > 0) {
+      await db.query(
+        `DELETE FROM report_comment WHERE comment_id IN (?)`,
+        [toDelete]
+      )
+    }
+
     res.json({ deleted: toDelete.length })
 
   } catch (err) {

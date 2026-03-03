@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, memo, useCallback, useRef } from 'react'
 import * as Icons from 'lucide-react'
 import iconNames from "@/app/lib/icon-names.json"
 import { useAlert } from '@/app/lib/alert-context'
+import Loading from '@/app/components/Loading'
 import '../styles/CategoriesTab.css'
 
 // ==================== Constants ====================
@@ -322,7 +323,7 @@ export default function CategoriesTab({ openCreate, setOpenCreate, globalSearch 
     return (
         <div className="categories-tab">
             <div className="content-area">
-                {loading && <div className="categories-tab-loading">กำลังโหลด...</div>}
+                {loading && <Loading />}
                 {!loading && categories.length === 0 && <div className="categories-tab-empty">ไม่มีข้อมูล</div>}
                 {!loading && filteredCategories.length === 0 && categories.length > 0 && <div className="categories-tab-empty">ไม่พบผลลัพธ์ที่ตรงกับการค้นหา</div>}
                 {!loading && filteredCategories.length > 0 && (

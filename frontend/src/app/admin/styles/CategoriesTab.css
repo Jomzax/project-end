@@ -1,4 +1,4 @@
-.content-area {
+.categories-tab .content-area {
     padding-top: 0 !important;
 }
 
@@ -25,7 +25,7 @@
 
 }
 
-.admin-pagination {
+.categories-tab .admin-pagination {
     margin-top: 16px;
     padding: 14px 18px;
     display: flex;

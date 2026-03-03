@@ -6,9 +6,10 @@ import { useRouter } from 'next/navigation'
 import { formatTimeAgo } from '@/app/lib/time-format'
 import { useAuth } from '@/app/lib/auth-context'
 import { useAlert } from '@/app/lib/alert-context'
+import Loading from '@/app/components/Loading'
 import '../styles/ReportsTab.css'
 
-export default function ReportsTab({ sortBy }) {
+export default function ReportsTab({ sortBy, onDataChange }) {
     const [reports, setReports] = useState([])
     const [loading, setLoading] = useState(true)
     const [deletingId, setDeletingId] = useState(null)
@@ -109,6 +110,7 @@ export default function ReportsTab({ sortBy }) {
     }, [currentUser, showAlert])
 
     const deleteDiscussion = useCallback(async (reportId, postId) => {
+        onDataChange?.({ reports: -1, discussions: -1 })
         try {
             setDeletingId(reportId)
 
@@ -134,7 +136,7 @@ export default function ReportsTab({ sortBy }) {
         } finally {
             setDeletingId(null)
         }
-    }, [currentUser, showAlert])
+    }, [currentUser, onDataChange, showAlert])
 
     const handleReject = useCallback((reportId) => {
         if (!reportId) return
@@ -166,7 +168,7 @@ export default function ReportsTab({ sortBy }) {
         )
     }, [currentUser, deleteDiscussion, showAlert])
 
-    if (authLoading || loading) return <div style={{ textAlign: 'center', padding: '40px' }}>กำลังโหลด...</div>
+    if (authLoading || loading) return <Loading />
 
     if (filteredReports.length === 0) {
         return (

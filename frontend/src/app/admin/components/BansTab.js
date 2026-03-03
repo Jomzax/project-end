@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { ShieldX, Ban } from 'lucide-react'
 import { useAuth } from '@/app/lib/auth-context'
 import { useAlert } from '@/app/lib/alert-context'
+import Loading from '@/app/components/Loading'
 import '../styles/BansTab.css'
 
 export default function BansTab() {
@@ -53,7 +54,7 @@ export default function BansTab() {
         return new Date(expiresAt).toLocaleDateString('th-TH')
     }
 
-    if (loading) return <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>กำลังโหลด...</div>
+    if (loading) return <Loading />
 
     if (bans.length === 0) {
         return (

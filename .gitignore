@@ -21,6 +21,7 @@ testing/
 *.log
 
 # minio runtime data
+minio/
 minio/.minio.sys/
 
 # user uploaded files

@@ -6,9 +6,10 @@ import { useRouter } from 'next/navigation'
 import { formatTimeAgo } from '@/app/lib/time-format'
 import { useAuth } from '@/app/lib/auth-context'
 import { useAlert } from '@/app/lib/alert-context'
+import Loading from '@/app/components/Loading'
 import '../styles/ReportsTab.css'
 
-export default function CommentReportsTab({ sortBy }) {
+export default function CommentReportsTab({ sortBy, onDataChange }) {
     const [reports, setReports] = useState([])
     const [loading, setLoading] = useState(true)
     const [deletingId, setDeletingId] = useState(null)
@@ -109,6 +110,7 @@ export default function CommentReportsTab({ sortBy }) {
     }, [currentUser, showAlert])
 
     const deleteComment = useCallback(async (reportId, commentId) => {
+        onDataChange?.({ 'comment-reports': -1 })
         try {
             setDeletingId(reportId)
 
@@ -127,14 +129,14 @@ export default function CommentReportsTab({ sortBy }) {
                 return
             }
 
-            setReports((prev) => prev.filter((report) => report.comment_id !== commentId))
+            await fetchReports()
             showAlert('ลบความคิดเห็นเรียบร้อยแล้ว', 'success')
         } catch {
             showAlert('ไม่สามารถลบความคิดเห็นได้', 'error')
         } finally {
             setDeletingId(null)
         }
-    }, [currentUser, showAlert])
+    }, [currentUser, fetchReports, onDataChange, showAlert])
 
     const handleReject = useCallback((reportId) => {
         if (!reportId) return
@@ -166,7 +168,7 @@ export default function CommentReportsTab({ sortBy }) {
         )
     }, [currentUser, deleteComment, showAlert])
 
-    if (authLoading || loading) return <div style={{ textAlign: 'center', padding: '40px' }}>กำลังโหลด...</div>
+    if (authLoading || loading) return <Loading />
 
     if (filteredReports.length === 0) {
         return (
@@ -200,8 +202,11 @@ export default function CommentReportsTab({ sortBy }) {
                                     type="button"
                                     className="icon-btn"
                                     aria-label="เปิดรายละเอียด"
-                                    onClick={() => discussionId && router.push(`/post/${discussionId}`)}
-                                    disabled={!discussionId}
+                                    onClick={() => {
+                                        if (!discussionId || !report?.comment_id) return
+                                        router.push(`/post/${discussionId}?commentId=${encodeURIComponent(report.comment_id)}`)
+                                    }}
+                                    disabled={!discussionId || !report?.comment_id}
                                 >
                                     <ExternalLink size={15} />
                                 </button>

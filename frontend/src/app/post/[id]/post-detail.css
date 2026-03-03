@@ -230,6 +230,29 @@
   background: #ffffff;
 }
 
+.comment-target-path {
+  border-left-color: #f59e0b !important;
+}
+
+.comment-target {
+  border-color: #f59e0b !important;
+  border-left-color: #d97706 !important;
+  background: #fff8e8 !important;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.18), 0 8px 20px rgba(15, 23, 42, 0.1);
+}
+
+.comment-target-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #9a3412;
+  background: #ffedd5;
+  border: 1px solid #fdba74;
+}
+
 
 .comment-header {
   display: flex;

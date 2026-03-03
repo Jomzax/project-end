@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Flag, Heart, Shield, Pencil, Trash2, User, X } from 'lucide-react'
 import { useAuth } from '@/app/lib/auth-context'
 import { useAlert } from '@/app/lib/alert-context'
@@ -17,6 +17,7 @@ export default function CommentItem({
   refreshComments,
   commentLikes,
   setCommentLikes,
+  targetCommentId,
 }) {
   const { user } = useAuth()
   const { showAlert } = useAlert()
@@ -36,6 +37,24 @@ export default function CommentItem({
   const [reportDetail, setReportDetail] = useState('')
   const [isSubmittingReport, setIsSubmittingReport] = useState(false)
   const [avatarLoadFailed, setAvatarLoadFailed] = useState(false)
+  const currentCommentId = String(comment?._id || comment?.id || '')
+  const isTargetComment = Boolean(targetCommentId) && String(targetCommentId) === currentCommentId
+
+  const hasTargetInDescendants = useMemo(() => {
+    if (!targetCommentId || !Array.isArray(comment?.replies) || comment.replies.length === 0) return false
+    const target = String(targetCommentId)
+
+    const walk = (list) => {
+      return list.some((item) => {
+        const itemId = String(item?._id || item?.id || '')
+        if (itemId === target) return true
+        if (!Array.isArray(item?.replies) || item.replies.length === 0) return false
+        return walk(item.replies)
+      })
+    }
+
+    return walk(comment.replies)
+  }, [comment?.replies, targetCommentId])
 
   const canReply = level < MAX_DEPTH - 1
   const isCommentOwner = String(comment?.userId || '') === String(user?.user_id || '')
@@ -93,6 +112,14 @@ export default function CommentItem({
   useEffect(() => {
     setAvatarLoadFailed(false)
   }, [commentAvatarSrc])
+
+  useEffect(() => {
+    if (!targetCommentId || !currentCommentId) return
+    if (String(targetCommentId) === currentCommentId) return
+    if (hasTargetInDescendants) {
+      setShowReplies(true)
+    }
+  }, [targetCommentId, currentCommentId, hasTargetInDescendants])
 
   const handleReplySubmit = async () => {
     if (!replyText.trim()) return
@@ -250,7 +277,10 @@ export default function CommentItem({
   }
 
   return (
-    <div className={`comment-item ${level === 0 ? 'comment-root' : 'comment-reply-item'} comment-level-${Math.min(level, 3)}`}>
+    <div
+      id={currentCommentId ? `comment-${currentCommentId}` : undefined}
+      className={`comment-item ${level === 0 ? 'comment-root' : 'comment-reply-item'} comment-level-${Math.min(level, 3)}${isTargetComment ? ' comment-target' : ''}${hasTargetInDescendants ? ' comment-target-path' : ''}`}
+    >
       <div className="comment-header">
         <div className="avatar-circle small-avatar">
           {commentAvatarSrc && !avatarLoadFailed ? (
@@ -268,6 +298,7 @@ export default function CommentItem({
         <div className="comment-meta">
           <div className="comment-name">
             {comment.username}
+            {isTargetComment && <span className="comment-target-badge">เป้าหมาย</span>}
             {level > 0 && <span className="reply-level-badge">ตอบกลับ</span>}
 
             {comment.role === 'admin' ? (
@@ -388,6 +419,7 @@ export default function CommentItem({
               refreshComments={refreshComments}
               commentLikes={commentLikes}
               setCommentLikes={setCommentLikes}
+              targetCommentId={targetCommentId}
             />
           ))}
         </div>

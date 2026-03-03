@@ -4,6 +4,7 @@ import '../../page.forum.css'
 import Link from 'next/link'
 import { useAuth } from '@/app/lib/auth-context'
 import { getAvatarInitial, normalizeAvatarSrc, pickAvatar } from '@/app/lib/avatar'
+import Loading from '@/app/components/Loading'
 import { usePathname, useParams } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 import { MessageCircle, ThumbsUp, Eye, Calendar, ChevronRight, User, Shield, ArrowUpDown, Pin, Flame, LogIn } from 'lucide-react'
@@ -157,9 +158,7 @@ export default function CategoryPage() {
       </div>
 
       {isLoading && posts.length === 0 ? (
-        <div className="text-center py-5">
-          <p className="text-muted">กำลังโหลดกระทู้...</p>
-        </div>
+        <Loading />
       ) : posts.map((post) => (
         <Link
           key={post.discussion_id}

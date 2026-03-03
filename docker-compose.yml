@@ -94,8 +94,25 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+       # 👇 สำคัญมาก
+      - GF_RENDERING_SERVER_URL=http://renderer:8081/render
+      - GF_RENDERING_CALLBACK_URL=http://webboard-grafana:3000/
+      - GF_RENDERING_SERVER_TIMEOUT=60
+      - GF_RENDERING_MODE=remote
+
     depends_on:
       - influxdb
+      - renderer
+
+  # --------------------
+  # Grafana Image Renderer
+  # --------------------
+  renderer:
+    image: grafana/grafana-image-renderer:latest
+    container_name: grafana-renderer
+    ports:
+    - "8081:8081"
+    restart: no
 
 volumes:
   mysql_data:

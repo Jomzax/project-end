@@ -18,7 +18,8 @@ export default function PostDetailPage() {
   const params = useParams()
   const id = Array.isArray(params.id) ? params.id[0] : params.id
   const router = useRouter()
-  useSearchParams()
+  const searchParams = useSearchParams()
+  const targetCommentId = searchParams.get('commentId')
   const resolveFromPath = () => {
     if (typeof window !== 'undefined') {
       const from = new URLSearchParams(window.location.search).get('from')
@@ -48,7 +49,7 @@ export default function PostDetailPage() {
   const [commentPage, setCommentPage] = useState(1)
   const COMMENTS_PAGE_SIZE = 5
   const commentRefs = useRef([])
-  const pendingScrollIndexRef = useRef(null)
+  const hasAutoScrolledToTargetRef = useRef(false)
 
   const loadPost = async () => {
     try {
@@ -125,6 +126,20 @@ export default function PostDetailPage() {
   const paginatedComments = useMemo(() => {
     return comments.slice(0, visibleCommentsCount)
   }, [comments, visibleCommentsCount])
+
+  const findRootCommentIndex = (list, commentId) => {
+    if (!commentId || !Array.isArray(list)) return -1
+    const target = String(commentId)
+
+    const hasTargetInTree = (comment) => {
+      const currentId = String(comment?.id ?? comment?._id ?? '')
+      if (currentId === target) return true
+      if (!Array.isArray(comment?.replies) || comment.replies.length === 0) return false
+      return comment.replies.some((reply) => hasTargetInTree(reply))
+    }
+
+    return list.findIndex((comment) => hasTargetInTree(comment))
+  }
 
   const loadCommentLikes = async (commentsData) => {
     if (!commentsData?.length || !user?.user_id) return
@@ -210,14 +225,31 @@ export default function PostDetailPage() {
   }, [totalCommentPages])
 
   useEffect(() => {
-    if (pendingScrollIndexRef.current === null) return
+    hasAutoScrolledToTargetRef.current = false
+  }, [id, targetCommentId])
 
-    const targetNode = commentRefs.current[pendingScrollIndexRef.current]
-    if (!targetNode) return
+  useEffect(() => {
+    if (!targetCommentId || !comments.length || hasAutoScrolledToTargetRef.current) return
 
-    targetNode.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    pendingScrollIndexRef.current = null
-  }, [paginatedComments])
+    const rootIndex = findRootCommentIndex(comments, targetCommentId)
+    if (rootIndex < 0) return
+
+    const requiredPage = Math.floor(rootIndex / COMMENTS_PAGE_SIZE) + 1
+    if (commentPage < requiredPage) {
+      setCommentPage(requiredPage)
+      return
+    }
+
+    const timer = setTimeout(() => {
+      const targetNode = document.getElementById(`comment-${targetCommentId}`)
+      if (targetNode) {
+        hasAutoScrolledToTargetRef.current = true
+        targetNode.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 120)
+
+    return () => clearTimeout(timer)
+  }, [targetCommentId, comments, commentPage])
 
   useEffect(() => {
     if (!id) return
@@ -345,17 +377,20 @@ export default function PostDetailPage() {
                   refreshComments={loadComments}
                   commentLikes={commentLikes}
                   setCommentLikes={setCommentLikes}
+                  targetCommentId={targetCommentId}
                 />
               </div>
             ))}
 
             {comments.length > COMMENTS_PAGE_SIZE && (
               <div className="comment-pagination">
+                <div className="comment-pagination-info">
+                  {`แสดงความเห็น 1-${visibleCommentsCount} จาก ${comments.length}`}
+                </div>
                 <button
                   className="comment-load-more-btn"
                   onClick={() => {
                     if (commentPage >= totalCommentPages) return
-                    pendingScrollIndexRef.current = visibleCommentsCount
                     setCommentPage((p) => Math.min(totalCommentPages, p + 1))
                   }}
                   disabled={commentPage >= totalCommentPages}

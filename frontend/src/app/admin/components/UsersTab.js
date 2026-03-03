@@ -4,6 +4,7 @@ import { useState, useEffect, memo, useCallback } from 'react'
 import { Users, Edit2, Shield, ShieldOff, Ban, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '@/app/lib/auth-context'
 import { useAlert } from '@/app/lib/alert-context'
+import Loading from '@/app/components/Loading'
 import '../styles/UsersTab.css'
 
 export default function UsersTab({ globalSearch: parentSearch }) {
@@ -262,19 +263,21 @@ export default function UsersTab({ globalSearch: parentSearch }) {
         })
     }, [currentUser, showAlert])
 
-    if (loading) return <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>กำลังโหลด...</div>
+    if (loading) return <div className="users-tab"><Loading /></div>
     if (users.length === 0) {
         return (
-            <div className="empty-state">
-                <Users size={60} strokeWidth={1} />
-                <p>ไม่มีผู้ใช้</p>
+            <div className="users-tab">
+                <div className="empty-state">
+                    <Users size={60} strokeWidth={1} />
+                    <p>ไม่มีผู้ใช้</p>
+                </div>
             </div>
         )
     }
 
     // Search is done on the server; no client-side filter needed
     return (
-        <>
+        <div className="users-tab">
             <div className="content-area">
 
                 <div className="users-wrapper">
@@ -433,7 +436,7 @@ export default function UsersTab({ globalSearch: parentSearch }) {
                     </div>
                 </div>
             )}
-        </>
+        </div>
     )
 }
 

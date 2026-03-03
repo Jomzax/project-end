@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ArrowLeft, Notebook, MessageSquare, Users, Eye, ThumbsUp, Flag, Grid3x3, Ban } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import ReportsTab from './components/ReportsTab'
@@ -9,7 +9,12 @@ import DiscussionsTab from './components/DiscussionsTab'
 import CategoriesTab from './components/CategoriesTab'
 import UsersTab from './components/UsersTab'
 import BansTab from './components/BansTab'
+import Loading from '@/app/components/Loading'
 import './admin.css'
+import './styles/ReportsTab.css'
+import './styles/CategoriesTab.css'
+import './styles/UsersTab.css'
+import './styles/BansTab.css'
 
 const getStatIconStyle = (idx) => {
   const colors = [
@@ -36,6 +41,40 @@ export default function AdminPage() {
   const [tabs, setTabs] = useState([])
   const [globalSearch, setGlobalSearch] = useState('')
   const [openCreateCategory, setOpenCreateCategory] = useState(false)
+
+  const refreshTabCounts = useCallback(async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/stats')
+      const data = await res.json()
+      if (!data?.success) return
+
+      setTabs((prev) => prev.map((tab) => {
+        if (tab.id === 'reports') return { ...tab, count: data.reports || 0 }
+        if (tab.id === 'comment-reports') return { ...tab, count: data.commentReports || 0 }
+        if (tab.id === 'discussions') return { ...tab, count: data.discussions || 0 }
+        if (tab.id === 'categories') return { ...tab, count: data.categories || 0 }
+        if (tab.id === 'users') return { ...tab, count: data.users || 0 }
+        if (tab.id === 'bans') return { ...tab, count: data.bans || 0 }
+        return tab
+      }))
+    } catch (error) {
+      console.error('Error refreshing tab counts:', error)
+    }
+  }, [])
+
+  const handleTabDataChange = useCallback((deltaMap = null) => {
+    if (deltaMap && typeof deltaMap === 'object') {
+      setTabs((prev) => prev.map((tab) => {
+        const delta = Number(deltaMap[tab.id] || 0)
+        if (!delta) return tab
+        return { ...tab, count: Math.max(0, Number(tab.count || 0) + delta) }
+      }))
+    }
+
+    setTimeout(() => {
+      refreshTabCounts()
+    }, 900)
+  }, [refreshTabCounts])
 
   // Fetch stats from API
   useEffect(() => {
@@ -65,7 +104,7 @@ export default function AdminPage() {
           { id: 'discussions', icon: <Notebook size={18} />, label: 'กระทู้', count: data.discussions || 0 },
           { id: 'categories', icon: <Grid3x3 size={18} />, label: 'หมวดหมู่', count: data.categories || 0 },
           { id: 'users', icon: <Users size={18} />, label: 'ผู้ใช้', count: data.users || 0 },
-          { id: 'bans', icon: <Ban size={18} />, label: 'ประวัติการแบน', count: data.bans || 0 },
+          { id: 'bans', icon: <Ban size={18} />, label: 'ประวัติการแบน', count: data.bans  || 0 },
         ])
 
       } catch (error) {
@@ -77,6 +116,13 @@ export default function AdminPage() {
 
     fetchStats()
   }, [])
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      refreshTabCounts()
+    }, 5000)
+    return () => clearInterval(intervalId)
+  }, [refreshTabCounts])
 
   return (
     <div className="admin-page">
@@ -96,9 +142,7 @@ export default function AdminPage() {
 
       {/* Loading State */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
-          กำลังโหลดข้อมูล...
-        </div>
+        <Loading />
       ) : (
         <>
           {/* Stats Cards */}
@@ -173,6 +217,24 @@ export default function AdminPage() {
             </div>
           )}
 
+          {activeTab === 'discussions' && (
+            <div className="toolbar-container">
+              <div className="toolbar-search">
+                <input
+                  type="text"
+                  placeholder="ค้นหากระทู้..."
+                  value={globalSearch}
+                  onChange={(e) => setGlobalSearch(e.target.value)}
+                  className="toolbar-input"
+                />
+              </div>
+
+              <div className="toolbar-actions">
+                {/* reserved for discussion actions */}
+              </div>
+            </div>
+          )}
+
           {/* Sort Dropdown */}
           <div className="content-header">
             {(activeTab === 'reports' || activeTab === 'comment-reports') && (
@@ -191,15 +253,15 @@ export default function AdminPage() {
 
           {/* Tabs with internal content-area and external pagination */}
           {activeTab === 'discussions' ? (
-            <DiscussionsTab />
+            <DiscussionsTab globalSearch={globalSearch} />
           ) : activeTab === 'categories' ? (
             <CategoriesTab openCreate={openCreateCategory} setOpenCreate={setOpenCreateCategory} globalSearch={globalSearch} />
           ) : activeTab === 'users' ? (
             <UsersTab globalSearch={globalSearch} />
           ) : (
             <div className="content-area">
-              {activeTab === 'reports' && <ReportsTab sortBy={sortBy} />}
-              {activeTab === 'comment-reports' && <CommentReportsTab sortBy={sortBy} />}
+              {activeTab === 'reports' && <ReportsTab sortBy={sortBy} onDataChange={handleTabDataChange} />}
+              {activeTab === 'comment-reports' && <CommentReportsTab sortBy={sortBy} onDataChange={handleTabDataChange} />}
               {activeTab === 'bans' && <BansTab />}
             </div>
           )}

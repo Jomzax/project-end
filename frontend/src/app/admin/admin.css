@@ -654,7 +654,7 @@ code {
     color: #be123c;
 }
 
-.admin-pagination {
+.admin-page .admin-pagination {
     margin-top: 16px;
     display: flex;
     justify-content: center;
@@ -664,15 +664,16 @@ code {
     background: #eef0f3;
 }
 
-.pagination-wrapper {
+.admin-page .pagination-wrapper {
     display: flex;
     justify-content: center;
+    margin: 0;
     padding: 0;
     border: none;
     background: transparent;
 }
 
-.pagination {
+.admin-page .pagination {
     margin: 0;
     padding: 0;
     list-style: none;
@@ -681,11 +682,11 @@ code {
     gap: 10px;
 }
 
-.page-item {
+.admin-page .page-item {
     display: flex;
 }
 
-.page-link {
+.admin-page .page-link {
     border: 1px solid #cfd5df;
     border-radius: 10px;
     background: #fff;
@@ -703,16 +704,16 @@ code {
     transition: all 0.2s ease;
 }
 
-.page-item:last-child .page-link {
+.admin-page .page-item:last-child .page-link {
     border-right: 1px solid #cfd5df;
 }
 
-.page-item:not(.disabled) .page-link:hover {
+.admin-page .page-item:not(.disabled) .page-link:hover {
     background: #f8fafc;
     border-color: #bac3d1;
 }
 
-.page-item.active .page-link {
+.admin-page .page-item.active .page-link {
     min-width: 40px;
     width: 40px;
     padding: 0;
@@ -722,7 +723,7 @@ code {
     box-shadow: 0 6px 14px rgba(47, 102, 232, 0.35);
 }
 
-.page-item.disabled .page-link {
+.admin-page .page-item.disabled .page-link {
     color: #c8cfd8;
     border-color: #dee3ea;
     background: #edf1f5;
@@ -735,7 +736,7 @@ code {
         padding: 14px;
     }
 
-    .admin-pagination {
+    .admin-page .admin-pagination {
         justify-content: center;
     }
 }

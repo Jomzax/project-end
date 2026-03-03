@@ -5,14 +5,17 @@ import { Flame, Notebook, Pin } from 'lucide-react'
 import { formatTimeAgo } from '@/app/lib/time-format'
 import { useAuth } from '@/app/lib/auth-context'
 import { useAlert } from '@/app/lib/alert-context'
+import Loading from '@/app/components/Loading'
 
-export default function DiscussionsTab() {
+export default function DiscussionsTab({ globalSearch = '' }) {
     const ITEMS_PER_PAGE = 20
 
     const [discussions, setDiscussions] = useState([])
     const [loading, setLoading] = useState(true)
     const [pinningId, setPinningId] = useState(null)
     const [currentPage, setCurrentPage] = useState(1)
+    const [hasNextPage, setHasNextPage] = useState(false)
+    const [debouncedSearch, setDebouncedSearch] = useState((globalSearch || '').trim())
     const { user: currentUser, loading: authLoading } = useAuth()
     const { showAlert } = useAlert()
 
@@ -21,12 +24,14 @@ export default function DiscussionsTab() {
 
         if (!currentUser) {
             setDiscussions([])
+            setHasNextPage(false)
             setLoading(false)
             return
         }
 
         if (currentUser.role !== 'admin') {
             setDiscussions([])
+            setHasNextPage(false)
             setLoading(false)
             showAlert('This page is for admin users only', 'error')
             return
@@ -34,44 +39,46 @@ export default function DiscussionsTab() {
 
         try {
             setLoading(true)
-
-            const allRows = []
-            let page = 1
-            let hasNext = true
-
-            while (hasNext && page <= 30) {
-                const response = await fetch(`http://localhost:5000/api/discussion?page=${page}`)
-                const data = await response.json().catch(() => ({}))
-
-                if (!response.ok || !data.success) {
-                    const message = data?.message || data?.error || 'Failed to load discussions'
-                    showAlert(message, 'error')
-                    setDiscussions([])
-                    return
-                }
-
-                const rows = Array.isArray(data.data) ? data.data : []
-                allRows.push(...rows)
-                hasNext = Boolean(data.hasNext)
-                page += 1
+            let url = `http://localhost:5000/api/discussion?page=${currentPage}`
+            if (debouncedSearch) {
+                url += `&q=${encodeURIComponent(debouncedSearch)}`
             }
 
-            setDiscussions(allRows)
+            const response = await fetch(url)
+            const data = await response.json().catch(() => ({}))
+
+            if (!response.ok || !data.success) {
+                const message = data?.message || data?.error || 'Failed to load discussions'
+                showAlert(message, 'error')
+                setDiscussions([])
+                setHasNextPage(false)
+                return
+            }
+
+            const rows = Array.isArray(data.data) ? data.data : []
+            setDiscussions(rows)
+            setHasNextPage(Boolean(data.hasNext))
         } catch {
             showAlert('Unable to load discussions', 'error')
             setDiscussions([])
+            setHasNextPage(false)
         } finally {
             setLoading(false)
         }
-    }, [authLoading, currentUser, showAlert])
+    }, [authLoading, currentPage, currentUser, debouncedSearch, showAlert])
 
     useEffect(() => {
         fetchDiscussions()
     }, [fetchDiscussions])
 
     useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch((globalSearch || '').trim()), 300)
+        return () => clearTimeout(timer)
+    }, [globalSearch])
+
+    useEffect(() => {
         setCurrentPage(1)
-    }, [discussions.length])
+    }, [debouncedSearch])
 
     const togglePin = useCallback(async (discussion) => {
         if (!discussion?.discussion_id) return
@@ -106,20 +113,20 @@ export default function DiscussionsTab() {
         }
     }, [showAlert])
 
-    const totalPages = useMemo(
-        () => Math.max(1, Math.ceil(discussions.length / ITEMS_PER_PAGE)),
-        [discussions.length]
+    const paginatedDiscussions = useMemo(
+        () => discussions.slice(0, ITEMS_PER_PAGE),
+        [discussions]
     )
 
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-    const paginatedDiscussions = discussions.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+    if (authLoading || loading) return <Loading />
 
-    if (authLoading || loading) return <div style={{ textAlign: 'center', padding: '40px' }}>Loading...</div>
     if (discussions.length === 0) {
         return (
-            <div className="empty-เช่น Top 10 เท่านั้น)state">
-                <Notebook size={60} strokeWidth={1} />
-                <p>No discussions found</p>
+            <div className="content-area">
+                <div className="empty-state">
+                    <Notebook size={60} strokeWidth={1} />
+                    <p>ไม่พบกระทู้</p>
+                </div>
             </div>
         )
     }
@@ -134,7 +141,7 @@ export default function DiscussionsTab() {
                                 <tr>
                                     <th>หัวข้อ</th>
                                     <th>ผู้เขียน</th>
-                                    <th className="text-center">ไลค์</th>
+                                    <th className="text-center">ไลก์</th>
                                     <th className="text-center">ชม</th>
                                     <th className="text-center">ความคิดเห็น</th>
                                     <th className="text-center">ปักหมุด</th>
@@ -167,7 +174,7 @@ export default function DiscussionsTab() {
                                                 </span>
                                                 <span
                                                     className={`discussion-status ${Number(discussion.is_hot) === 1 ? 'hot' : ''}`}
-                                                    title="สถานะมาแรง"
+                                                    title="สถานะแรง"
                                                 >
                                                     <Flame size={12} />
                                                 </span>
@@ -192,7 +199,7 @@ export default function DiscussionsTab() {
                 </section>
             </div>
 
-            {totalPages > 1 && (
+            {(currentPage > 1 || hasNextPage) && (
                 <div className="admin-pagination discussion-pagination">
                     <nav className="pagination-wrapper" aria-label="Discussion pagination">
                         <ul className="pagination">
@@ -210,11 +217,11 @@ export default function DiscussionsTab() {
                                 <span className="page-link">{currentPage}</span>
                             </li>
 
-                            <li className={`page-item ${currentPage >= totalPages ? 'disabled' : ''}`}>
+                            <li className={`page-item ${!hasNextPage ? 'disabled' : ''}`}>
                                 <button
                                     className="page-link"
-                                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                                    disabled={currentPage >= totalPages}
+                                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                                    disabled={!hasNextPage}
                                 >
                                     Next
                                 </button>
